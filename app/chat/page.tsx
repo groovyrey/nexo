@@ -11,10 +11,10 @@ import { useAuthContext } from '@/lib/context'; // Import useAuthContext
 const ChatPage = () => {
   const { user } = useAuthContext();
   const router = useRouter();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Redirect if user is not logged in
   useEffect(() => {
