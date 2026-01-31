@@ -29,19 +29,8 @@ const ChatPage = () => {
   }, [messages]);
 
   // If user is not yet determined, or not logged in, render nothing or a loading state
-  if (user === undefined || user === null) {
-    return (
-      <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black text-white font-sans antialiased items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
-        <p className="mt-4">Loading...</p>
-      </div>
-    );
-  }
 
-  // Scroll to bottom whenever messages update
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+
 
   const handleSendMessage = async () => {
     if (input.trim() === '') return;
@@ -89,18 +78,19 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black text-white font-sans antialiased">
       {/* Header */}
-      <header className="sticky top-0 z-50 p-4 bg-gray-900/80 backdrop-blur-md flex items-center justify-between shadow-xl border-b border-gray-700">
-        <button onClick={() => router.back()} className="text-gray-400 hover:text-white transition-colors duration-200 ease-in-out">
+      <header className="sticky top-0 z-50 py-3 px-4 bg-gray-900/90 backdrop-blur-md flex items-center justify-between shadow-lg border-b border-gray-700">
+        <button onClick={() => router.back()} className="text-gray-400 hover:text-white transition-colors duration-200 ease-in-out p-2 -ml-2 rounded-full hover:bg-gray-700/50">
           <FiArrowLeft className="text-2xl" />
         </button>
         <div className="flex items-center space-x-3">
-          <Image src="/nexo.png" width={48} height={48} alt="Nexo Logo" className="rounded-full" />
+          <Image src="/nexo.png" width={40} height={40} alt="Nexo Logo" className="rounded-full shadow-lg" />
+          <h1 className="text-xl font-semibold text-white">Nexo AI</h1>
         </div>
-        <div className="w-9"></div> {/* Spacer for balance */}
+        <div className="w-10 h-10 -mr-2"></div> {/* Spacer for balance, matching button size */}
       </header>
 
       {/* Chat Interface */}
-      <div className="flex-grow flex flex-col w-full max-w-3xl mx-auto bg-gray-800/70 rounded-2xl shadow-2xl overflow-hidden my-6 border border-gray-700">
+      <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto bg-gray-800/60 rounded-xl shadow-2xl overflow-hidden my-6 border border-gray-700">
         {/* Messages Display */}
         <div className="flex-grow p-4 overflow-y-auto custom-scrollbar flex flex-col">
           {messages.length === 0 ? (
@@ -126,10 +116,10 @@ const ChatPage = () => {
         </div>
 
         {/* Input Area */}
-        <div className="flex p-4 border-t border-gray-700 bg-gray-800/80 gap-2">
+        <div className="flex p-4 border-t border-gray-700 bg-gray-800/80 gap-3">
           <input
             type="text"
-            className="flex-grow p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 transition-all duration-200"
+            className="flex-grow p-3.5 rounded-full bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 transition-all duration-200 text-sm"
             placeholder="Type your message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -142,7 +132,7 @@ const ChatPage = () => {
           />
           <button
             onClick={handleSendMessage}
-            className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-lg flex items-center justify-center transition-colors duration-200 disabled:bg-blue-800 disabled:cursor-not-allowed"
+            className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-full flex items-center justify-center transition-all duration-200 disabled:bg-blue-800 disabled:cursor-not-allowed transform hover:scale-105"
             disabled={loading}
           >
             <FiSend className="text-xl" />

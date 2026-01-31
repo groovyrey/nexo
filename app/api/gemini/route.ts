@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     ];
 
     const completion = await client.chat.completions.create({
-        model: "google/gemma-3-27b-it",
+        model: "meta-llama/Llama-3.1-8B-Instruct",
         messages: transformedMessages,
     });
 
