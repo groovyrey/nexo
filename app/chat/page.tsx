@@ -42,7 +42,7 @@ const ChatPage = () => {
     setLoading(true); // Start loading
 
     try {
-      const response = await fetch('/api/gemini', {
+      const response = await fetch('/api/nexo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

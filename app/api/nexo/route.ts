@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     });
 
     const transformedMessages = [
-      {"role": "system", "content": "Your name is Nexo. You are a helpful AI assistant."},
+      {"role": "system", "content": "Your name is Nexo. You are a helpful AI assistant. Please format your responses using GitHub Flavored Markdown."},
       ...messages.map((msg: { role: string; content: string }) => ({
         ...msg,
         role: msg.role === 'model' ? 'assistant' : msg.role,
