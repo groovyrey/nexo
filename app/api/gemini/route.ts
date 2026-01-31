@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     const transformedMessages = [
       {"role": "system", "content": "Your name is Nexo. You are a helpful AI assistant."},
-      ...messages.map(msg => ({
+      ...messages.map((msg: { role: string; content: string }) => ({
         ...msg,
         role: msg.role === 'model' ? 'assistant' : msg.role,
       }))
