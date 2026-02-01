@@ -31,20 +31,28 @@ body {
   margin-bottom: 0.25em; /* Small space between list items */
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+.loading-dot {
+  opacity: 0;
+  animation: pulse-dot 1.4s infinite ease-in-out both;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #333;
-  border-radius: 10px;
+.loading-dot:nth-child(1) {
+  animation-delay: 0s;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 10px;
+.loading-dot:nth-child(2) {
+  animation-delay: 0.2s;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #777;
+.loading-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse-dot {
+  0%, 80%, 100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
 }
