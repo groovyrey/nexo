@@ -95,10 +95,7 @@ const ChatPage = () => {
       <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
         {/* Messages Display */}
         <div
-          className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar"
-          style={{
-            backgroundImage: `linear-gradient(to bottom, rgba(20, 30, 48, 0.8), rgba(0, 0, 0, 0.9))`,
-          }}
+          className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar bg-black/70 backdrop-blur-lg"
         >
           {messages.length === 0 ? (
             <div className="text-gray-500 text-center py-10">
@@ -144,7 +141,7 @@ const ChatPage = () => {
             />
             <button
               onClick={handleSendMessage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-full flex items-center justify-center transition-all duration-200 disabled:bg-blue-800 disabled:cursor-not-allowed"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full flex items-center justify-center transition-all duration-200 disabled:bg-indigo-800 disabled:cursor-not-allowed"
               disabled={loading}
             >
               <FiSend className="text-lg" />

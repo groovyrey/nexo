@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FiArrowRight, FiTwitter, FiLinkedin, FiGithub, FiLogOut, FiLogIn } from "react-icons/fi";
+import { FiArrowRight, FiTwitter, FiLinkedin, FiGithub, FiLogOut, FiLogIn, FiUser, FiMessageSquare, FiLayers } from "react-icons/fi";
 import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle, signOutWithGoogle } from "@/lib/auth";
 import LoggedInHomepage from "./components/LoggedInHomepage";
@@ -79,21 +79,21 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="flex flex-col items-center p-6 rounded-xl transition-all hover:bg-gray-900/60 border border-gray-800">
                   <div className="relative w-20 h-20 mb-5 flex items-center justify-center bg-gradient-to-br from-indigo-400/20 to-blue-500/20 rounded-full">
-                    <Image src="/file.svg" width={40} height={40} alt="File" />
+                    <FiMessageSquare className="text-white text-4xl" />
                   </div>
                   <h4 className="text-xl font-semibold mb-2">Intelligent Conversations</h4>
                   <p className="text-gray-400 text-sm">Engage in natural and intelligent discussions with our advanced AI.</p>
                 </div>
                 <div className="flex flex-col items-center p-6 rounded-xl transition-all hover:bg-gray-900/60 border border-gray-800">
                   <div className="relative w-20 h-20 mb-5 flex items-center justify-center bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full">
-                    <Image src="/globe.svg" width={40} height={40} alt="Globe" />
+                    <FiLayers className="text-white text-4xl" />
                   </div>
                   <h4 className="text-xl font-semibold mb-2">Adaptable Workflows</h4>
                   <p className="text-gray-400 text-sm">Nexo seamlessly adapts to your needs, enhancing various tasks with ease.</p>
                 </div>
                 <div className="flex flex-col items-center p-6 rounded-xl transition-all hover:bg-gray-900/60 border border-gray-800">
                   <div className="relative w-20 h-20 mb-5 flex items-center justify-center bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-full">
-                    <Image src="/next.svg" width={40} height={40} alt="Next.js" />
+                    <FiUser className="text-white text-4xl" />
                   </div>
                   <h4 className="text-xl font-semibold mb-2">Personalized Assistance</h4>
                   <p className="text-gray-400 text-sm">Nexo learns and adapts to provide tailored support just for you.</p>
@@ -124,6 +124,11 @@ export default function Home() {
             {/* Footer */}
             <footer className="p-8 mt-16 border-t border-gray-800 bg-black">
               <div className="px-4 md:px-8 text-center text-gray-500 text-sm">
+                <p className="mb-4">
+                  <Link href="/disclaimer" className="text-blue-400 hover:underline">
+                    Read Important Disclaimer
+                  </Link>
+                </p>
                 <p>&copy; 2026 Nexo. All rights reserved.</p>
                 <div className="flex justify-center space-x-6 mt-4">
                   <a href="#" className="hover:text-gray-300"><FiTwitter /></a>
