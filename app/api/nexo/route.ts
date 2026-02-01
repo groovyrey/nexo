@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     ];
 
     const completion = await client.chat.completions.create({
-        model: "meta-llama/Llama-3.1-8B-Instruct",
+        model: "deepseek-ai/DeepSeek-V3.2",
         messages: transformedMessages,
     });
 
