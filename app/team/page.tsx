@@ -2,13 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
 import { FiCode, FiMonitor, FiServer, FiFigma, FiCheckSquare, FiBook, FiDatabase, FiSearch, FiEdit3 } from 'react-icons/fi';
-
-const DynamicVantaBackground = dynamic(
-  () => import('../components/VantaBackground'),
-  { ssr: false }
-);
 
 const TeamPage = () => {
   const teamMembers = [
@@ -78,9 +72,8 @@ const TeamPage = () => {
   ];
 
   return (
-    <DynamicVantaBackground>
       <div
-        className="flex flex-col items-center justify-center min-h-screen text-white"
+        className="flex flex-col items-center justify-center min-h-screen text-white animated-gradient"
       >
         <Image
           src="/nexo.png"
@@ -112,7 +105,6 @@ const TeamPage = () => {
           </div>
         </div>
       </div>
-    </DynamicVantaBackground>
   );
 };
 
