@@ -62,7 +62,7 @@ export default function Home() {
             <div>
               <Link href="/chat" passHref>
                 <button
-                  onClick={signInWithGoogle}
+                  onClick={user ? undefined : signInWithGoogle}
                   className="group flex items-center bg-indigo-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:scale-105"
                 >
                   <span className="font-semibold">Start Chatting with Nexo</span>
@@ -111,7 +111,7 @@ export default function Home() {
                 </p>
                 <Link href="/chat" passHref>
                   <button
-                    onClick={signInWithGoogle}
+                    onClick={user ? undefined : signInWithGoogle}
                     className="group flex items-center mx-auto bg-indigo-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:scale-105"
                   >
                     <span className="font-semibold">Try Nexo AI Now</span>

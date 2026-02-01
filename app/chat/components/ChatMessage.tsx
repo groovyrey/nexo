@@ -40,7 +40,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser }) => 
         </div>
       )}
       <div
-        className={`relative p-4 rounded-lg max-w-[80%] ${bubbleColor} ${textColor} font-sans ${!isUser ? 'ai-message' : ''}`}
+        className={`relative p-3 rounded-lg max-w-[75%] ${bubbleColor} ${textColor} font-sans ${!isUser ? 'ai-message' : ''}`}
       >
         <ReactMarkdown
           className="prose prose-invert max-w-none"

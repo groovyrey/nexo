@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     const teamPageUrl = `${origin}/team`;
 
     const systemMessageContent = userName 
-      ? `Your name is Nexo. You are a helpful AI assistant. You are currently chatting with ${userName}. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}.`
-      : `Your name is Nexo. You are a helpful AI assistant. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}.`;
+      ? `Your name is Nexo. You are a helpful AI assistant. You are currently chatting with a user with a name ${userName}. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}. All your responses should be in Markdown format.`
+      : `Your name is Nexo. You are a helpful AI assistant. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}. All your responses should be in Markdown format.`;
 
     const transformedMessages = [
       {"role": "system", "content": systemMessageContent},
