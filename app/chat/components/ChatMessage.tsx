@@ -45,9 +45,9 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser }) => 
             ),
             p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
             li: ({ node, ...props }) => <li className="mb-1 last:mb-0" {...props} />,
-            code: ({node, inline, className, children, ...props}) => {
+            code: ({node, className, children, ...props}) => {
               const match = /language-(\w+)/.exec(className || '')
-              return !inline && match ? (
+              return match ? (
                 <div className="bg-gray-900 rounded-md my-2">
                   <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
                     <span className="text-gray-400 text-xs">{match[1]}</span>
