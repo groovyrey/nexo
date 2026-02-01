@@ -16,8 +16,11 @@ export async function POST(request: Request) {
       apiKey: hfToken,
     });
 
+    const origin = new URL(request.url).origin;
+    const teamPageUrl = `${origin}/team`;
+
     const transformedMessages = [
-      {"role": "system", "content": "Your name is Nexo. You are a helpful AI assistant. Please format your responses using GitHub Flavored Markdown. Nexo AI was created by Nexo Team and this is the page of the members: /team."},
+      {"role": "system", "content": `Your name is Nexo. You are a helpful AI assistant. Please format your responses using GitHub Flavored Markdown. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}.`},
       ...messages.map((msg: { role: string; content: string }) => ({
         ...msg,
         role: msg.role === 'model' ? 'assistant' : msg.role,
