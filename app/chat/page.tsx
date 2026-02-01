@@ -37,7 +37,7 @@ const ChatPage = () => {
   const handleSendMessage = async () => {
     if (input.trim() === '' || !user) return;
 
-    const newMessage = { role: 'user', content: input };
+    const newMessage = { role: 'user', content: input, timestamp: Date.now() };
     writeMessage(user.uid, conversationId, newMessage);
     
     setInput('');
@@ -61,7 +61,7 @@ const ChatPage = () => {
       const data = await response.json();
       const botMessageContent = data.choices[0].message.content;
       
-      const botMessage = { role: 'model', content: botMessageContent };
+      const botMessage = { role: 'model', content: botMessageContent, timestamp: Date.now() };
       writeMessage(user.uid, conversationId, botMessage);
 
     } catch (error: any) {
