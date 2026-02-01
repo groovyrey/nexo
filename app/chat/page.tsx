@@ -70,7 +70,7 @@ const ChatPage = () => {
       if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }
-      const systemMessage = { role: 'system', content: errorMessage };
+      const systemMessage = { role: 'system', content: errorMessage, timestamp: Date.now() };
       writeMessage(user.uid, conversationId, systemMessage);
     } finally {
       setLoading(false);
