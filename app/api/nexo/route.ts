@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     ];
 
     const completion = await client.chat.completions.create({
-        model: "CohereLabs/c4ai-command-r-08-2024",
+        model: "deepseek-ai/DeepSeek-V3.2",
         messages: transformedMessages,
     });
 
