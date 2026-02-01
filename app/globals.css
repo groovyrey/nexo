@@ -74,3 +74,8 @@ body {
   background-image: linear-gradient(to right, #1e3a8a, #000000);
   animation: gradient-animation 10s ease infinite;
 }
+
+/* Custom styling for AI message bold text */
+.ai-message strong {
+  color: #67e8f9; /* Tailwind's cyan-300 */
+}

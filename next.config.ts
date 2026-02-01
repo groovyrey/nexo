@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/api/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '**', // Allow any path for Google user content
+      },
     ],
   },
   /* config options here */

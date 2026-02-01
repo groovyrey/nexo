@@ -50,7 +50,7 @@ const ChatPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: allMessages }),
+        body: JSON.stringify({ messages: allMessages, userName: user.displayName }),
       });
 
       if (!response.ok) {

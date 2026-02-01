@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json();
+    const { messages, userName } = await request.json();
 
     const hfToken = process.env.HF_TOKEN;
     if (!hfToken) {
@@ -19,8 +19,12 @@ export async function POST(request: Request) {
     const origin = new URL(request.url).origin;
     const teamPageUrl = `${origin}/team`;
 
+    const systemMessageContent = userName 
+      ? `Your name is Nexo. You are a helpful AI assistant. You are currently chatting with ${userName}. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}.`
+      : `Your name is Nexo. You are a helpful AI assistant. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}.`;
+
     const transformedMessages = [
-      {"role": "system", "content": `Your name is Nexo. You are a helpful AI assistant. Please format your responses using GitHub Flavored Markdown. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}.`},
+      {"role": "system", "content": systemMessageContent},
       ...messages.map((msg: { role: string; content: string }) => ({
         ...msg,
         role: msg.role === 'model' ? 'assistant' : msg.role,
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
     ];
 
     const completion = await client.chat.completions.create({
-        model: "deepseek-ai/DeepSeek-V3.2",
+        model: "CohereLabs/c4ai-command-r-08-2024",
         messages: transformedMessages,
     });
 
