@@ -77,5 +77,15 @@ body {
 
 /* Custom styling for AI message bold text */
 .ai-message strong {
-  color: #67e8f9; /* Tailwind's cyan-300 */
+  color: #93c5fd; /* Tailwind's blue-300 for theme alignment */
 }
+
+/* Custom styling for hr elements within prose */
+.prose hr {
+  border-top-width: 2px;
+  border-top-style: dashed;
+  border-top-color: #6b7280; /* Tailwind's gray-500 */
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+

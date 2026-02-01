@@ -16,8 +16,10 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser }) => {
-  const bubbleColor = isUser ? 'bg-blue-500' : 'bg-gray-800';
-  const textColor = isUser ? 'text-white' : 'text-gray-200';
+  const bubbleBg = isUser ? 'bg-blue-600' : 'bg-gray-700';
+  const bubbleText = isUser ? 'text-white' : 'text-gray-100';
+  const bubbleBorder = isUser ? 'border border-blue-400' : 'border border-gray-600';
+  const bubbleShape = isUser ? 'rounded-tr-xl rounded-bl-xl rounded-tl-md rounded-br-md' : 'rounded-tl-xl rounded-br-xl rounded-tr-md rounded-bl-md';
   const align = isUser ? 'justify-end' : 'justify-start';
 
   const formatTimestamp = (timestamp?: number) => { // Allow timestamp to be optional
@@ -40,7 +42,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser }) => 
         </div>
       )}
       <div
-        className={`relative p-3 rounded-lg max-w-[75%] ${bubbleColor} ${textColor} font-sans ${!isUser ? 'ai-message' : ''}`}
+        className={`relative p-3 max-w-[75%] ${bubbleBg} ${bubbleText} ${bubbleBorder} ${bubbleShape} font-sans ${!isUser ? 'ai-message' : ''}`}
       >
         <ReactMarkdown
           className="prose prose-invert max-w-none"

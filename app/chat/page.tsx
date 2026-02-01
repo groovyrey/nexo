@@ -31,7 +31,7 @@ const ChatPage = () => {
   }, [user]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages]);
 
   const handleSendMessage = async () => {
@@ -113,9 +113,9 @@ const ChatPage = () => {
               </div>
               <div className="relative p-4 rounded-lg max-w-[80%] shadow-md bg-gray-800 text-gray-200">
                 <div className="flex items-center space-x-1">
-                  <span className="loading-dot text-xl">.</span>
-                  <span className="loading-dot text-xl">.</span>
-                  <span className="loading-dot text-xl">.</span>
+                  <span className="loading-dot text-xl">•</span>
+                  <span className="loading-dot text-xl">•</span>
+                  <span className="loading-dot text-xl">•</span>
                 </div>
               </div>
             </div>
