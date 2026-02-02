@@ -31,6 +31,8 @@ export const getConversation = (userId: string, conversationId:string, callback:
   onValue(messagesRef, (snapshot) => {
     const data = snapshot.val();
     const messages = data ? Object.values(data) as { role: string; content: string; timestamp: number }[] : [];
+    // Ensure messages are sorted by timestamp as Object.values does not guarantee order
+    messages.sort((a, b) => a.timestamp - b.timestamp);
     callback(messages);
   });
 };
