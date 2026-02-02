@@ -112,10 +112,9 @@ const ChatPage = () => {
                 <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
               </div>
               <div className="relative p-4 rounded-lg max-w-[80%] shadow-md bg-gray-800 text-gray-200">
-                <div className="flex items-center space-x-1">
-                  <span className="loading-dot text-xl">•</span>
-                  <span className="loading-dot text-xl">•</span>
-                  <span className="loading-dot text-xl">•</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-blue-400"></div>
+                  <span>Nexo is thinking...</span>
                 </div>
               </div>
             </div>
