@@ -82,19 +82,19 @@ const TeamPage = () => {
           height={200}
           className="mb-6 rounded-full"
         />
-        <h1 className="text-4xl font-bold mb-4">Nexo AI Team</h1>
+        <h1 className="text-5xl font-bold mb-4 text-white">Nexo AI Team</h1>
         <p className="text-lg mb-8 text-gray-300 text-center">A BSIS-2A Group Project for Science, Technology, and Society (MST2)</p>
 
         <div className="w-full max-w-5xl px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
-              <div key={index} className="bg-gray-800 rounded-lg p-6 shadow-xl flex flex-col items-center text-center">
+              <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl shadow-lg p-6 flex flex-col items-center text-center border border-white/20">
                 <Image
                   src={member.profilePhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&color=fff&size=128`}
                   alt={`${member.name}'s profile`}
                   width={96}
                   height={96}
-                  className="rounded-full mb-4 border-2 border-gray-600"
+                  className="rounded-full mb-4 ring-4 ring-white/20"
                 />
                 <h2 className="text-2xl font-semibold text-white mt-2">{member.name}</h2>
                 <p className={`${member.roleColor} font-medium flex items-center justify-center gap-2`}>

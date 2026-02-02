@@ -80,12 +80,12 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
       {/* Header */}
-      <header className="sticky top-0 z-50 py-3 px-4 bg-black/50 backdrop-blur-lg flex items-center justify-between border-b border-gray-800">
-        <button onClick={() => router.back()} className="text-gray-400 hover:text-white transition-colors duration-200 ease-in-out p-2 rounded-full hover:bg-gray-800/60">
+      <header className="sticky top-0 z-50 py-3 px-4 bg-white/10 backdrop-blur-md flex items-center justify-between border-b border-white/20">
+        <button onClick={() => router.back()} className="text-gray-300 hover:text-white transition-colors duration-200 ease-in-out p-2 rounded-full hover:bg-white/20">
           <FiArrowLeft className="text-xl" />
         </button>
         <div className="flex items-center space-x-3">
-          <Image src="/nexo.png" width={32} height={32} alt="Nexo Logo" className="rounded-full" />
+          <Image src="/nexo.png" width={32} height={32} alt="Nexo Logo" className="rounded-full ring-2 ring-white/30" />
           <h1 className="text-lg font-semibold text-white">Nexo AI</h1>
         </div>
         <div className="w-10 h-10"></div>
@@ -95,7 +95,7 @@ const ChatPage = () => {
       <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
         {/* Messages Display */}
         <div
-          className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar bg-black/70 backdrop-blur-lg"
+          className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar"
         >
           {messages.length === 0 ? (
             <div className="text-gray-500 text-center py-10">
@@ -103,7 +103,7 @@ const ChatPage = () => {
             </div>
           ) : (
             messages.map((msg, index) => (
-              <ChatMessage key={index} msg={msg} isUser={msg.role === 'user'} />
+              <ChatMessage key={index} msg={msg} isUser={msg.role === 'user'} user={user} />
             ))
           )}
           {loading && (
@@ -111,10 +111,10 @@ const ChatPage = () => {
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                 <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
               </div>
-              <div className="relative p-4 rounded-lg max-w-[80%] shadow-md bg-gray-800 text-gray-200">
+              <div className="relative p-4 max-w-[80%] bg-white/10 text-gray-100 border border-white/20 rounded-tl-xl rounded-br-xl rounded-tr-md rounded-bl-md">
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-blue-400"></div>
-                  <span>Nexo is thinking...</span>
+                  <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-cyan-400"></div>
+                  <span className="text-gray-300">Nexo is thinking...</span>
                 </div>
               </div>
             </div>
@@ -123,11 +123,11 @@ const ChatPage = () => {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 bg-black/50 backdrop-blur-lg border-t border-gray-800">
+        <div className="p-4 bg-white/10 backdrop-blur-md border-t border-white/20">
           <div className="relative">
             <input
               type="text"
-              className="w-full p-4 pr-12 rounded-full bg-gray-900 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 transition-all duration-200"
+              className="w-full p-4 pr-12 rounded-full bg-white/20 border border-transparent text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-gray-400 transition-all duration-200"
               placeholder="Message Nexo..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -140,7 +140,7 @@ const ChatPage = () => {
             />
             <button
               onClick={handleSendMessage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full flex items-center justify-center transition-all duration-200 disabled:bg-indigo-800 disabled:cursor-not-allowed"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-cyan-500 hover:bg-cyan-400 text-white p-2 rounded-full flex items-center justify-center transition-all duration-200 disabled:bg-cyan-700 disabled:cursor-not-allowed"
               disabled={loading}
             >
               <FiSend className="text-lg" />

@@ -8,11 +8,11 @@ import { FiArrowLeft } from 'react-icons/fi';
 const DisclaimerPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-black text-white font-sans antialiased items-center justify-center p-8">
-      <div className="max-w-4xl mx-auto bg-gray-900/70 backdrop-blur-lg rounded-xl shadow-2xl p-10 border border-gray-700">
+      <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl shadow-lg p-10 border border-white/20">
         <div className="flex justify-center mb-6">
-          <Image src="/nexo.png" width={80} height={80} alt="Nexo Logo" className="rounded-full" />
+          <Image src="/nexo.png" width={80} height={80} alt="Nexo Logo" className="rounded-full ring-4 ring-white/20" />
         </div>
-        <h1 className="text-4xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-500">Important Disclaimer</h1>
+        <h1 className="text-4xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Important Disclaimer</h1>
         <div className="text-gray-300 text-lg leading-relaxed space-y-6">
           <p>
             Please be advised that Nexo AI is a functional conversational AI designed to provide assistance,
@@ -34,7 +34,7 @@ const DisclaimerPage = () => {
         </div>
         <div className="mt-10 text-center">
           <Link href="/" passHref>
-            <button className="group flex items-center justify-center bg-indigo-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:scale-105">
+            <button className="group flex items-center justify-center bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-cyan-500/50 transition-all transform hover:scale-105">
               <FiArrowLeft className="mr-2 transition-transform group-hover:-translate-x-1" />
               <span className="font-semibold">Return to Homepage</span>
             </button>
