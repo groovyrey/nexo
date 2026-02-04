@@ -1,4 +1,8 @@
 @import "tailwindcss";
+
+:root {
+  --color-black: #111111;
+}
 @import "highlight.js/styles/atom-one-dark-reasonable.css";
 
 body {
@@ -57,23 +61,7 @@ body {
   }
 }
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
 
-.animated-gradient {
-  background-size: 200% 200%;
-  background-image: linear-gradient(to right, #1e3a8a, #000000);
-  animation: gradient-animation 10s ease infinite;
-}
 
 /* Custom styling for AI message bold text */
 .ai-message strong {

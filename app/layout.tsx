@@ -35,13 +35,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.variable} ${firaCode.variable} antialiased`}
+        className={`${openSans.variable} ${firaCode.variable} antialiased flex flex-col min-h-screen`}
       >
         <ThemeRegistry options={{ key: 'mui' }}>
           <AuthProvider>
-            <Navbar />
-            <BreadcrumbsComponent /> {/* Render the BreadcrumbsComponent here */}
-            {children}
+            <div className="flex flex-col flex-grow">
+              <Navbar />
+              <BreadcrumbsComponent />
+              <div className="flex-grow">
+                {children}
+              </div>
+            </div>
           </AuthProvider>
         </ThemeRegistry>
       </body>
