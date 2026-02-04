@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FiArrowRight, FiTwitter, FiLinkedin, FiGithub, FiLogOut, FiLogIn, FiUser, FiMessageSquare, FiLayers } from "react-icons/fi";
+import { FiArrowRight, FiTwitter, FiLinkedin, FiGithub, FiUser, FiMessageSquare, FiLayers } from "react-icons/fi";
 import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle, signOutWithGoogle } from "@/lib/auth";
 import LoggedInHomepage from "./components/LoggedInHomepage";
@@ -12,35 +12,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white font-sans antialiased">
-      {/* Header */}
-      <header className="sticky top-0 z-50 py-3 px-4 bg-black/50 backdrop-blur-lg flex items-center justify-between border-b border-gray-800">
-        <nav className="px-4 md:px-8 flex justify-between items-center w-full">
-          <div className="flex items-center space-x-2">
-            <Image src="/nexo.png" width={32} height={32} alt="Nexo Logo" />
-          </div>
-          <div>
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={signOutWithGoogle}
-                  className="bg-red-600/80 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-red-500 transition-colors flex items-center"
-                >
-                  <FiLogOut className="mr-2" />
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={signInWithGoogle}
-                className="bg-indigo-600/80 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-indigo-500 transition-colors flex items-center"
-              >
-                <FiLogIn className="mr-2" />
-                Sign in with Google
-              </button>
-            )}
-          </div>
-        </nav>
-      </header>
+
 
       {user ? (
         <LoggedInHomepage />

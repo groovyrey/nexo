@@ -13,6 +13,9 @@ const firaCode = Fira_Code({
   subsets: ["latin"],
 });
 
+import ThemeRegistry from './components/ThemeRegistry/ThemeRegistry';
+import Navbar from './components/Navbar'; // Import the new Navbar component
+
 export const metadata: Metadata = {
   title: "Nexo - Your AI Chatbot Assistant",
   description: "Your AI Chatbot Assistant",
@@ -31,7 +34,12 @@ export default function RootLayout({
       <body
         className={`${openSans.variable} ${firaCode.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeRegistry options={{ key: 'mui' }}>
+          <AuthProvider>
+            <Navbar />
+            {children}
+          </AuthProvider>
+        </ThemeRegistry>
       </body>
     </html>
   );
