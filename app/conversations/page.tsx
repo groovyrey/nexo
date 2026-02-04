@@ -24,10 +24,26 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import for the bac
 import { Fab, Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
 
 const ConversationsPage = () => {
-  const { user } = useAuthContext();
+  const authContext = useAuthContext();
   const router = useRouter();
   const [conversations, setConversations] = useState<ConversationMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // If authContext is null, it means the user session is not yet loaded or user is not logged in.
+  // The useEffect below will handle redirection if user is null.
+  if (!authContext) {
+    return (
+        <div className="flex flex-col h-screen bg-black text-white font-sans antialiased items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mb-4">
+              <Image src="/nexo.png" alt="Loading" width={32} height={32} />
+            </div>
+            <span className="text-gray-300">Loading user session...</span>
+        </div>
+    );
+  }
+
+  const { user } = authContext;
+
 
   const [openRenameDialog, setOpenRenameDialog] = useState(false);
   const [renameConversationId, setRenameConversationId] = useState('');

@@ -8,7 +8,8 @@ import LoggedInHomepage from "./components/LoggedInHomepage";
 import Link from 'next/link';
 
 export default function Home() {
-  const { user } = useAuthContext();
+  const authContext = useAuthContext();
+  const user = authContext ? authContext.user : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white font-sans antialiased">

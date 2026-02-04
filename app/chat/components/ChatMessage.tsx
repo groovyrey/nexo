@@ -13,6 +13,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MoreVertIcon from '@mui/icons-material/MoreVert'; // New import
 import IconButton from '@mui/material/IconButton'; // Ensure IconButton is imported if not already
+import { User } from '@/lib/context'; // Import User interface
 
 interface ChatMessageProps {
   msg: {

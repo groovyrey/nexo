@@ -11,9 +11,16 @@ import { useNotification } from "@/lib/notification"; // Import useNotification
 
 const Navbar = () => {
   const router = useRouter();
-  const { user } = useAuthContext(); // Get user from AuthContext
+  const authContext = useAuthContext(); // Get authContext from AuthContext
   const { showNotification } = useNotification(); // Use the notification hook
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+
+  // If authContext is null, user session is not yet loaded.
+  // In Navbar, we don't necessarily want to return null,
+  // as the Navbar should still render to allow sign-in.
+  // We'll treat user as null in this case.
+  const user = authContext ? authContext.user : null;
+
 
   const handleNavigateToConversations = () => {
     router.push('/conversations');
@@ -110,7 +117,11 @@ const Navbar = () => {
                                   )}
                                 </Box>
                               </Box>
-                            </Toolbar>      {/* Mobile Drawer */}
+                            </Toolbar>
+                            <Button onClick={() => showNotification("This is a test notification!", "success")} sx={{ display: { xs: 'none', sm: 'block' }, color: 'white' }}>
+                              Test Notification
+                            </Button>
+      {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}

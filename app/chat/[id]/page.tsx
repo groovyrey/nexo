@@ -11,9 +11,20 @@ import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const ChatPage = () => {
-  const { user } = useAuthContext();
+  const authContext = useAuthContext();
   const router = useRouter();
   const { id: conversationId } = useParams(); // Get conversationId from URL params
+
+  // If authContext is null, it means the user session is not yet loaded or user is not logged in.
+  // The useEffect below will handle redirection if user is null.
+  // For now, we can return null or a loading state to prevent destructuring 'user' from a null object.
+  if (!authContext) {
+    // console.warn("Auth context is null, waiting for user session or redirection.");
+    return null; // Or return a loading spinner
+  }
+
+  const { user } = authContext;
+
   const [messages, setMessages] = useState<{ role: string; content: string; timestamp: number }[]>([]);
   const [conversationTitle, setConversationTitle] = useState('Loading...'); // New state for conversation title
   const [input, setInput] = useState('');

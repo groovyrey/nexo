@@ -50,9 +50,9 @@ export const createConversation = async (
   return finalConversationId;
 };
 
-export const getConversationList = (userId: string, callback: (conversations: ConversationMetadata[]) => void) => {
+export const getConversationList = (userId: string, callback: (conversations: ConversationMetadata[]) => void): (() => void) => {
   const conversationsRef = ref(database, `conversations/${userId}`);
-  onValue(conversationsRef, (snapshot) => {
+  return onValue(conversationsRef, (snapshot) => {
     const data = snapshot.val();
     const conversations: ConversationMetadata[] = [];
     if (data) {
@@ -124,9 +124,9 @@ export const writeMessage = async (userId: string, conversationId: string, messa
 };
 
 // A function to get all messages from a conversation and listen for new ones
-export const getConversation = (userId: string, conversationId:string, callback: (messages: { role: string; content: string; timestamp: number }[]) => void) => {
+export const getConversation = (userId: string, conversationId:string, callback: (messages: { role: string; content: string; timestamp: number }[]) => void): (() => void) => {
   const messagesRef = query(ref(database, `conversations/${userId}/${conversationId}/messages`), limitToLast(20));
-  onValue(messagesRef, (snapshot) => {
+  return onValue(messagesRef, (snapshot) => {
     const data = snapshot.val();
     const messages = data ? Object.values(data) as { role: string; content: string; timestamp: number }[] : [];
     callback(messages);
@@ -138,9 +138,9 @@ export const deleteConversation = async (userId: string, conversationId: string)
   await remove(conversationNodeRef);
 };
 
-export const getConversationMetadata = (userId: string, conversationId: string, callback: (metadata: ConversationMetadata) => void) => {
+export const getConversationMetadata = (userId: string, conversationId: string, callback: (metadata: ConversationMetadata) => void): (() => void) => {
   const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
-  onValue(conversationNodeRef, (snapshot) => {
+  return onValue(conversationNodeRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
       callback({
@@ -153,7 +153,6 @@ export const getConversationMetadata = (userId: string, conversationId: string, 
     }
   });
 };
-
 export const updateConversationTitle = async (userId: string, conversationId: string, newTitle: string) => {
   const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
   await update(conversationNodeRef, {

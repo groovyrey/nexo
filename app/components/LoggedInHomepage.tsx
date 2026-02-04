@@ -7,7 +7,15 @@ import Button from '@mui/material/Button'; // New import
 import ArrowRightIcon from '@mui/icons-material/ArrowRight'; // New import
 
 const LoggedInHomepage = () => {
-  const { user } = useAuthContext();
+  const authContext = useAuthContext();
+
+  // If authContext is null, it means the user session is not yet loaded or user is not logged in.
+  // This component likely expects a logged-in user.
+  if (!authContext) {
+    return null; // Or return a loading spinner if desired
+  }
+
+  const { user } = authContext;
 
   return (
     <div className="flex-grow flex flex-col items-center justify-start text-white text-center p-4">
