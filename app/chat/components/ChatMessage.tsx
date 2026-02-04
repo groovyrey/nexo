@@ -14,6 +14,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MoreVertIcon from '@mui/icons-material/MoreVert'; // New import
 import IconButton from '@mui/material/IconButton'; // Ensure IconButton is imported if not already
 import { User } from '@/lib/context'; // Import User interface
+import Box from '@mui/material/Box';
 
 interface ChatMessageProps {
   msg: {
@@ -122,13 +123,23 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
 
   if (!isUser) {
     return (
-      <div className="flex flex-col items-start gap-2 animate-fade-in-up mb-4 w-full">
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '8px', // gap-2 (1 unit = 4px, so 2*4 = 8px)
+          animation: 'fade-in-up 0.3s ease-out', // animate-fade-in-up (needs to be defined in global css or emotion/styled-components)
+          marginBottom: '16px', // mb-4
+          width: '100%', // w-full
+        }}
+      >
         <div className="flex justify-between items-center w-full"> {/* New flex container */}
           <div className="flex items-center gap-2"> {/* Existing profile and name */}
             <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
               <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
             </div>
-            <span className="font-bold text-gray-200">Nexo AI</span>
+            <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'rgb(229, 231, 235)' }}>Nexo AI</Typography>
           </div>
           <IconButton
             size="small"
@@ -154,9 +165,9 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
           <div className="w-full text-gray-100">
             <MarkdownRenderer content={msg.content} />
             {msg.timestamp && (
-              <div className="text-xs mt-2 text-left text-gray-400">
+              <Typography variant="caption" sx={{ fontSize: '0.75rem', marginTop: '8px', textAlign: 'left', color: 'rgb(156, 163, 175)' }}>
                 {formatTimestamp(msg.timestamp)}
-              </div>
+              </Typography>
             )}
           </div>
         </ButtonBase>
@@ -196,20 +207,28 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
               </MenuItem>
             )}
           </Menu>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="flex items-start gap-3 justify-end animate-fade-in-up">
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px', // gap-3 (1 unit = 4px, so 3*4 = 12px)
+        justifyContent: 'flex-end',
+        animation: 'fade-in-up 0.3s ease-out', // animate-fade-in-up
+      }}
+    >
       <div
         className={`relative p-3 max-w-[75%] ${bubbleBg} ${bubbleText} ${bubbleBorder} ${bubbleShape} font-sans`}
       >
         <MarkdownRenderer content={msg.content} />
         {msg.timestamp && (
-          <div className="text-xs mt-2 text-right text-gray-400">
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', marginTop: '8px', textAlign: 'right', color: 'rgb(156, 163, 175)' }}>
             {formatTimestamp(msg.timestamp)}
-          </div>
+          </Typography>
         )}
       </div>
       <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
@@ -224,7 +243,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
           <FiUser className="text-white" />
         )}
       </div>
-    </div>
+    </Box>
   );
 });
 

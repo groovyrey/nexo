@@ -126,7 +126,7 @@ const ChatPage = () => {
     <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
       {/* Header */}
       <header className="sticky top-0 z-50 py-3 px-4 bg-white/10 backdrop-blur-md flex items-center justify-between border-b border-white/20">
-        <IconButton onClick={() => router.push('/conversations')} color="inherit" aria-label="back" sx={{ color: 'white', '&:hover': { bgcolor: 'white/20' } }}>
+        <IconButton onClick={() => router.push('/chat')} color="inherit" aria-label="back" sx={{ color: 'white', '&:hover': { bgcolor: 'white/20' } }}>
           <ArrowBackIcon />
         </IconButton>
         <div className="flex items-center space-x-3">

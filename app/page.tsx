@@ -6,6 +6,7 @@ import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle, signOutWithGoogle } from "@/lib/auth";
 import LoggedInHomepage from "./components/LoggedInHomepage";
 import Link from 'next/link';
+import Button from '@mui/material/Button';
 
 export default function Home() {
   const authContext = useAuthContext();
@@ -34,13 +35,27 @@ export default function Home() {
 
             <div>
               <Link href="/chat" passHref>
-                <button
+                <Button
                   onClick={user ? undefined : signInWithGoogle}
-                  className="group flex items-center bg-indigo-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:scale-105"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: '#4f46e5', // bg-indigo-600
+                    color: 'white',
+                    padding: '12px 28px', // px-7 py-3
+                    borderRadius: '9999px', // rounded-full
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
+                    transition: 'all 0.2s ease-in-out', // transition-all transform
+                    '&:hover': {
+                      boxShadow: '0 20px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -6px rgba(99, 102, 241, 0.5)', // hover:shadow-indigo-500/50
+                      transform: 'scale(1.05)', // hover:scale-105
+                      backgroundColor: '#4f46e5', // Keep background color on hover
+                    },
+                  }}
                 >
                   <span className="font-semibold">Start Chatting with Nexo</span>
                   <FiArrowRight className="ml-2 transition-transform group-hover:translate-x-1" />
-                </button>
+                </Button>
               </Link>
             </div>
           </main>
@@ -83,13 +98,28 @@ export default function Home() {
                   Experience the power of AI-driven conversations. Get started with Nexo today!
                 </p>
                 <Link href="/chat" passHref>
-                  <button
+                  <Button
                     onClick={user ? undefined : signInWithGoogle}
-                    className="group flex items-center mx-auto bg-indigo-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:scale-105"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      margin: '0 auto', // mx-auto
+                      backgroundColor: '#4f46e5', // bg-indigo-600
+                      color: 'white',
+                      padding: '12px 28px', // px-7 py-3
+                      borderRadius: '9999px', // rounded-full
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
+                      transition: 'all 0.2s ease-in-out', // transition-all transform
+                      '&:hover': {
+                        boxShadow: '0 20px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -6px rgba(99, 102, 241, 0.5)', // hover:shadow-indigo-500/50
+                        transform: 'scale(1.05)', // hover:scale-105
+                        backgroundColor: '#4f46e5', // Keep background color on hover
+                      },
+                    }}
                   >
                     <span className="font-semibold">Try Nexo AI Now</span>
                     <FiArrowRight className="ml-2 transition-transform group-hover:translate-x-1" />
-                  </button>
+                  </Button>
                 </Link>
               </div>
             </section>

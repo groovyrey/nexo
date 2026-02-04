@@ -22,12 +22,14 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import EditIcon from '@mui/icons-material/Edit'; // New import for Edit icon
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import for the back button
 import { Fab, Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
+import { useNotification } from "@/lib/notification"; // Import useNotification
 
 const ConversationsPage = () => {
   const authContext = useAuthContext();
   const router = useRouter();
   const [conversations, setConversations] = useState<ConversationMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showNotification } = useNotification();
 
   // If authContext is null, it means the user session is not yet loaded or user is not logged in.
   // The useEffect below will handle redirection if user is null.
@@ -70,6 +72,13 @@ const ConversationsPage = () => {
 
   const handleCreateNewConversation = useCallback(async (idToCreate?: string, shouldRedirect: boolean = true) => {
     if (!user) return;
+
+    // Check for conversation limit
+    if (conversations.length >= 5 && idToCreate !== "default") { // Allow "default" to be created if list is empty
+      showNotification("You have reached the maximum limit of 5 conversations.", "warning");
+      return;
+    }
+
     try {
       const newConversationId = await createConversation(user.uid, idToCreate === "default" ? "Default Chat" : "New Chat", idToCreate);
       if (shouldRedirect) {
@@ -78,7 +87,7 @@ const ConversationsPage = () => {
     } catch (error) {
       console.error("Error creating new conversation:", error);
     }
-  }, [user, router]); // Dependencies for useCallback
+  }, [user, router, conversations]); // Added 'conversations' to dependency array
 
   const handleOpenRenameDialog = useCallback((convoId: string, currentTitle: string) => {
     handleMenuClose(); // Close the MoreVert menu
@@ -217,14 +226,14 @@ const ConversationsPage = () => {
             </Typography>
           </Box>
         ) : (
-          <List className="flex-grow overflow-y-auto custom-scrollbar p-4">
+          <List className="flex-grow overflow-y-auto custom-scrollbar">
             {conversations.map((convo) => (
               <ListItem
                 key={convo.id}
                 disablePadding
                 secondaryAction={
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="caption" color="lightgray" sx={{ mr: 1, whiteSpace: 'nowrap' }}>
+                    <Typography variant="caption" color="lightgray" sx={{ mr: 1 }}>
                       {formatTimestamp(convo.timestamp)}
                     </Typography>
                     <IconButton
@@ -288,7 +297,7 @@ const ConversationsPage = () => {
                 }
                 sx={{
                     mb: 2,
-                    pl: 3, // Increase padding-left to give more space from the left edge
+                    px: 2,
                     borderRadius: '1rem', // More consistent rounding
                     bgcolor: 'rgba(33, 33, 33, 0.8)', // Darker grey with transparency
                     '&:hover': {
@@ -297,7 +306,7 @@ const ConversationsPage = () => {
                     border: '1px solid rgba(68, 68, 68, 0.7)', // Darker, more subtle border
                 }}
               >
-                <Link href={`/chat/${convo.id}`} passHref style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', paddingRight: '16px' }}>
+                <Link href={`/chat/${convo.id}`} passHref style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexGrow: 1, minWidth: 0 }}>
                   <ListItemAvatar>
                     <Avatar sx={{
                         bgcolor: 'rgba(6, 182, 212, 0.7)', // Slightly darker cyan

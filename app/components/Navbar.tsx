@@ -23,7 +23,7 @@ const Navbar = () => {
 
 
   const handleNavigateToConversations = () => {
-    router.push('/conversations');
+    router.push('/chat');
     setDrawerOpen(false); // Close drawer after navigation
   };
 

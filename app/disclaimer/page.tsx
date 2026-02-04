@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FiArrowLeft } from 'react-icons/fi';
+import Button from '@mui/material/Button';
 
 const DisclaimerPage = () => {
   return (
@@ -34,10 +35,27 @@ const DisclaimerPage = () => {
         </div>
         <div className="mt-10 text-center">
           <Link href="/" passHref>
-            <button className="group flex items-center justify-center bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-7 py-3 rounded-full shadow-lg hover:shadow-cyan-500/50 transition-all transform hover:scale-105">
+            <Button
+              component="a" // Use 'a' for Next.js Link
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(to right, #06b6d4, #3b82f6)', // from-cyan-500 to-blue-600
+                color: 'white',
+                padding: '12px 28px', // px-7 py-3
+                borderRadius: '9999px', // rounded-full
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
+                transition: 'all 0.2s ease-in-out', // transition-all transform
+                '&:hover': {
+                  boxShadow: '0 20px 25px -5px rgba(6, 182, 212, 0.5), 0 8px 10px -6px rgba(6, 182, 212, 0.5)', // hover:shadow-cyan-500/50
+                  transform: 'scale(1.05)', // hover:scale-105
+                },
+              }}
+            >
               <FiArrowLeft className="mr-2 transition-transform group-hover:-translate-x-1" />
               <span className="font-semibold">Return to Homepage</span>
-            </button>
+            </Button>
           </Link>
         </div>
       </div>

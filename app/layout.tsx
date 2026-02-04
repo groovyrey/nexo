@@ -15,6 +15,9 @@ const firaCode = Fira_Code({
 
 import ThemeRegistry from './components/ThemeRegistry/ThemeRegistry';
 import Navbar from './components/Navbar'; // Import the new Navbar component
+import BreadcrumbsComponent from './components/BreadcrumbsComponent'; // Import the new BreadcrumbsComponent
+import { Breadcrumbs, Link as MuiLink, Typography } from '@mui/material'; // Import MUI components for breadcrumbs
+import { usePathname } from 'next/navigation'; // Import usePathname for dynamic breadcrumbs
 
 export const metadata: Metadata = {
   title: "Nexo - Your AI Chatbot Assistant",
@@ -37,6 +40,7 @@ export default function RootLayout({
         <ThemeRegistry options={{ key: 'mui' }}>
           <AuthProvider>
             <Navbar />
+            <BreadcrumbsComponent /> {/* Render the BreadcrumbsComponent here */}
             {children}
           </AuthProvider>
         </ThemeRegistry>
