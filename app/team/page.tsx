@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { FiCode, FiMonitor, FiServer, FiFigma, FiCheckSquare, FiBook, FiDatabase, FiSearch, FiEdit3 } from 'react-icons/fi';
+import { motion } from "framer-motion";
 
 const TeamPage = () => {
   const teamMembers = [
@@ -88,7 +89,19 @@ const TeamPage = () => {
         <div className="w-full max-w-5xl px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl shadow-lg p-6 flex flex-col items-center text-center border border-white/20">
+              <motion.div
+                key={index}
+                className="bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 hover:shadow-xl"
+                layout
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.8 }}
+                variants={{
+                  hidden: { opacity: 0, x: index % 2 === 0 ? 50 : -50 },
+                  visible: { opacity: 1, x: 0 }
+                }}
+                transition={{ duration: 0.8, delay: index * 0.1 }}
+              >
                 <Image
                   src={member.profilePhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&color=fff&size=128`}
                   alt={`${member.name}'s profile`}
@@ -100,7 +113,7 @@ const TeamPage = () => {
                 <p className={`${member.roleColor} font-medium flex items-center justify-center gap-2`}>
                   {member.icon}{member.role}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

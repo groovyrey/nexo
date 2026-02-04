@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.variable} ${firaCode.variable} antialiased flex flex-col min-h-screen`}
+        className={`${openSans.variable} ${firaCode.variable} antialiased flex flex-col min-h-screen overflow-y-scroll`}
       >
         <ThemeRegistry options={{ key: 'mui' }}>
           <AuthProvider>
