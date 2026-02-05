@@ -6,6 +6,8 @@ import { useAuthContext } from '@/lib/context';
 import { getConversationList, createConversation, deleteConversation, updateConversationTitle, ConversationMetadata } from '@/lib/realtimedb';
 import Image from 'next/image';
 
+import ConversationSkeleton from '../components/ConversationSkeleton';
+
 // MUI Imports
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -35,12 +37,13 @@ const ConversationsPage = () => {
   // The useEffect below will handle redirection if user is null.
   if (!authContext) {
     return (
-        <div className="flex flex-col h-screen bg-black text-white font-sans antialiased items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mb-4">
-              <Image src="/nexo.png" alt="Loading" width={32} height={32} />
-            </div>
-            <span className="text-gray-300">Loading user session...</span>
+      <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
+        <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
+          <List className="flex-grow overflow-y-auto custom-scrollbar">
+            {[...Array(4)].map((_, i) => <ConversationSkeleton key={i} />)}
+          </List>
         </div>
+      </div>
     );
   }
 
@@ -197,11 +200,21 @@ const ConversationsPage = () => {
 
   if (!user || loading) {
     return (
-      <div className="flex flex-col h-screen bg-black text-white font-sans antialiased items-center justify-center">
-        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mb-4">
-          <Image src="/nexo.png" alt="Loading" width={32} height={32} />
+      <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
+        <header className="sticky top-0 z-50 py-3 px-4 bg-white/10 backdrop-blur-md flex items-center justify-between border-b border-white/20">
+          <IconButton onClick={() => router.push('/')} color="inherit" aria-label="back to home" sx={{ color: 'white', '&:hover': { bgcolor: 'white/20' } }}>
+            <ArrowBackIcon />
+          </IconButton>
+          <h1 className="text-lg font-semibold text-white">Your Conversations</h1>
+          <IconButton color="primary" onClick={() => handleCreateNewConversation(undefined, true)} aria-label="new conversation">
+              <AddIcon sx={{ color: 'white' }} />
+          </IconButton>
+        </header>
+        <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
+          <List className="flex-grow overflow-y-auto custom-scrollbar">
+            {[...Array(4)].map((_, i) => <ConversationSkeleton key={i} />)}
+          </List>
         </div>
-        <span className="text-gray-300">Loading conversations...</span>
       </div>
     );
   }
@@ -296,14 +309,13 @@ const ConversationsPage = () => {
                   </div>
                 }
                 sx={{
-                    mb: 2,
-                    px: 2,
-                    borderRadius: '1rem', // More consistent rounding
+                    borderRadius: '0',
                     bgcolor: 'rgba(33, 33, 33, 0.8)', // Darker grey with transparency
                     '&:hover': {
                         bgcolor: 'rgba(50, 50, 50, 0.9)', // Slightly lighter dark grey for hover
                     },
-                    border: '1px solid rgba(68, 68, 68, 0.7)', // Darker, more subtle border
+                    borderBottom: '1px solid rgba(68, 68, 68, 0.7)', // Darker, more subtle border
+                    pl: 2, // Add left padding to the ListItem
                 }}
               >
                 <Link href={`/chat/${convo.id}`} passHref style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexGrow: 1, minWidth: 0 }}>
@@ -341,11 +353,7 @@ const ConversationsPage = () => {
             ))}
           </List>
         )}
-        <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
-            <Fab color="primary" aria-label="add" onClick={() => handleCreateNewConversation(undefined, true)}>
-                <AddIcon />
-            </Fab>
-        </Box>
+
       </div>
         <Dialog open={openRenameDialog} onClose={handleCloseRenameDialog} PaperProps={{ sx: { bgcolor: 'rgba(30, 30, 30, 0.9)', color: 'white' } }}>
             <DialogTitle sx={{ color: 'white' }}>Rename Conversation</DialogTitle>

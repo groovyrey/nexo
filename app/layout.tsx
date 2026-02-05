@@ -13,6 +13,7 @@ const firaCode = Fira_Code({
   subsets: ["latin"],
 });
 
+import SessionWrapper from './components/SessionWrapper'; // Import the new SessionWrapper component
 import ThemeRegistry from './components/ThemeRegistry/ThemeRegistry';
 import Navbar from './components/Navbar'; // Import the new Navbar component
 import BreadcrumbsComponent from './components/BreadcrumbsComponent'; // Import the new BreadcrumbsComponent
@@ -43,7 +44,7 @@ export default function RootLayout({
               <Navbar />
               <BreadcrumbsComponent />
               <div className="flex-grow">
-                {children}
+                <SessionWrapper>{children}</SessionWrapper>
               </div>
             </div>
           </AuthProvider>

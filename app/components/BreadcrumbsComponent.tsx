@@ -10,7 +10,7 @@ const BreadcrumbsComponent = () => {
   const pathnames = pathname.split('/').filter((x) => x);
 
   return (
-    <Breadcrumbs aria-label="breadcrumb" sx={{ padding: '8px 16px', bgcolor: '#1a1a1a', borderBottom: '1px solid rgba(68, 68, 68, 0.7)', color: 'inherit' }}>
+    <Breadcrumbs aria-label="breadcrumb" sx={{ padding: '8px 16px', bgcolor: '#1a1a1a', borderBottom: '1px solid rgba(68, 68, 68, 0.7)', color: 'lightgray' }}>
       <MuiLink component={Link} href="/" passHref sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}>
         <Typography color="white">Home</Typography>
       </MuiLink>

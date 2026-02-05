@@ -11,10 +11,22 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import MoreVertIcon from '@mui/icons-material/MoreVert'; // New import
-import IconButton from '@mui/material/IconButton'; // Ensure IconButton is imported if not already
-import { User } from '@/lib/context'; // Import User interface
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Divider from '@mui/material/Divider';
+import MuiLink from '@mui/material/Link';
+
+
+
+import { User } from '@/lib/context'; // Import User interface
 
 interface ChatMessageProps {
   msg: {
@@ -23,7 +35,7 @@ interface ChatMessageProps {
     timestamp?: number;
   };
   isUser: boolean;
-  user: User | null; // It's better to use a more specific type for user
+  user: User | null;
 }
 
 const MarkdownRenderer = ({ content }: { content: string }) => (
@@ -33,48 +45,104 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
     rehypePlugins={[rehypeRaw, rehypeHighlight]}
     components={{
       a: ({ node, ...props }) => (
-        <a
+        <MuiLink
           {...props}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-indigo-300 hover:underline"
+          sx={{ color: 'info.main', '&:hover': { textDecoration: 'underline' } }}
         />
       ),
-      p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-      li: ({ node, ...props }) => <li className="mb-1 last:mb-0" {...props} />,
+      p: ({ node, ...props }) => <Typography variant="body1" sx={{ mb: 2, '&:last-child': { mb: 0 } }} {...props} />,
+      li: ({ node, ...props }) => <Typography component="li" variant="body2" sx={{ mb: 1, '&:last-child': { mb: 0 } }} {...props} />,
       code: ({node, className, children, ...props}) => {
         const match = /language-(\w+)/.exec(className || '')
         return match ? (
-          <div className="bg-gray-900 rounded-md my-2">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-              <span className="text-gray-400 text-xs">{match[1]}</span>
-            </div>
-                              <pre className="p-4 overflow-x-auto font-mono !whitespace-pre">
-                                <code className={`!bg-transparent text-sm ${className}`} {...props}>
-                                  {children}
-                                </code>
-                              </pre>
-                            </div>
-                          ) : (
-                            <code className="bg-gray-700 rounded-md px-1.5 py-1 text-xs font-mono" {...props}>
-                              {children}
-                            </code>
-                          )
-                        },      table: ({node, ...props}) => <div className="overflow-x-auto my-4"><table className="min-w-full divide-y divide-gray-700" {...props} /></div>,
-      thead: ({node, ...props}) => <thead className="bg-white/10" {...props} />,
-      th: ({node, ...props}) => <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" {...props} />,
-      tbody: ({node, ...props}) => <tbody className="bg-white/5 divide-y divide-gray-700" {...props} />,
-      tr: ({node, ...props}) => <tr className="hover:bg-white/10" {...props} />,
-      td: ({node, ...props}) => <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200" {...props} />,
-      blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-cyan-500/50 bg-white/5 p-4 my-4" {...props} />,
-      h1: ({node, ...props}) => <h1 className="text-3xl font-bold mb-4 text-white border-b-2 border-cyan-500/50 pb-2" {...props} />,
-      h2: ({node, ...props}) => <h2 className="text-2xl font-bold mb-4 text-white border-b border-cyan-500/50 pb-2" {...props} />,
-      h3: ({node, ...props}) => <h3 className="text-xl font-bold mb-3 text-white" {...props} />,
-      h4: ({node, ...props}) => <h4 className="text-lg font-semibold mb-3 text-white" {...props} />,
-      h5: ({node, ...props}) => <h5 className="text-base font-semibold mb-2 text-white" {...props} />,
-      h6: ({node, ...props}) => <h6 className="text-sm font-semibold mb-2 text-white" {...props} />,
-      hr: ({node, ...props}) => <hr className="my-6 border-cyan-500/50" {...props} />,
-      img: ({node, ...props}) => <img className="rounded-lg shadow-lg my-4" {...props} />,
+          <Paper elevation={0} sx={{ bgcolor: '#1e1e1e', borderRadius: '8px', my: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1, borderBottom: '1px solid rgba(68, 68, 68, 0.7)' }}>
+              <Typography variant="caption" sx={{ color: 'grey.300' }}>
+                {match[1]}
+              </Typography>
+            </Box>
+            <pre style={{ padding: '16px', overflowX: 'auto', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+              <code className={`!bg-transparent text-sm ${className}`} {...props}>
+                {children}
+              </code>
+            </pre>
+          </Paper>
+        ) : (
+          <Typography
+            component="code"
+            sx={{
+              bgcolor: 'rgba(90, 90, 90, 0.9)',
+              borderRadius: '4px',
+              px: 0.5,
+              py: 0.25,
+              fontSize: '0.875rem',
+              fontFamily: 'monospace',
+            }}
+            {...props}
+          >
+            {children}
+          </Typography>
+        )
+      },
+      table: ({node, ...props}) => (
+        <TableContainer component={Paper} sx={{ my: 4, bgcolor: 'transparent', boxShadow: 'none' }}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table" {...props} />
+        </TableContainer>
+      ),
+      thead: ({node, ...props}) => <TableHead sx={{ bgcolor: 'rgba(255, 255, 255, 0.15)' }} {...props} />,
+      th: ({node, align, ...props}) => ( // Destructure align here
+        <TableCell
+          align="left" // Explicitly set align to a valid value
+          sx={{
+            px: 3,
+            py: 1.5,
+            textAlign: 'left',
+            fontSize: '0.75rem',
+            fontWeight: 'medium',
+            color: 'grey.300',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            borderBottom: '1px solid rgba(90, 90, 90, 0.7)',
+          }}
+          {...props} // Pass remaining props
+        />
+      ),
+      tbody: ({node, ...props}) => <TableBody sx={{ bgcolor: 'rgba(255, 255, 255, 0.08)', '& .MuiTableRow-root:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' } }} {...props} />,
+      tr: ({node, ...props}) => <TableRow sx={{ borderBottom: '1px solid rgba(90, 90, 90, 0.7)' }} {...props} />,
+      td: ({node, align, ...props}) => <TableCell align="left" sx={{ px: 3, py: 2, whiteSpace: 'nowrap', fontSize: '0.875rem', color: 'grey.200' }} {...props} />,
+      blockquote: ({node, ...props}) => (
+        <Box component="blockquote" sx={{ borderLeft: '4px solid', borderColor: 'info.light', bgcolor: 'rgba(255, 255, 255, 0.08)', p: 2, my: 2 }} {...props} />
+      ),
+      h1: ({node, ...props}) => <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: 'grey.50', borderBottom: '2px solid', borderColor: 'info.light', pb: 1 }} {...props} />,
+      h2: ({node, ...props}) => <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2, color: 'grey.50', borderBottom: '1px solid', borderColor: 'info.light', pb: 1 }} {...props} />,
+      h3: ({node, ...props}) => <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5, color: 'grey.50' }} {...props} />,
+      h4: ({node, ...props}) => <Typography variant="subtitle1" sx={{ fontWeight: 'semibold', mb: 1.5, color: 'grey.50' }} {...props} />,
+      h5: ({node, ...props}) => <Typography variant="subtitle2" sx={{ fontWeight: 'semibold', mb: 1, color: 'grey.50' }} {...props} />,
+      h6: ({node, ...props}) => <Typography variant="overline" sx={{ fontWeight: 'semibold', mb: 1, color: 'grey.50', display: 'block' }} {...props} />,
+      hr: ({node, ...props}) => <Divider sx={{ my: 3, borderColor: 'grey.600', borderStyle: 'dashed' }} {...props} />,
+      img: ({node, width, height, src, alt, ...restProps}) => {
+        const imgWidth = typeof width === 'string' ? parseInt(width, 10) : (width || 500);
+        const imgHeight = typeof height === 'string' ? parseInt(height, 10) : (height || 300);
+        const imgSrc = typeof src === 'string' ? src : ''; // Ensure src is a string, provide fallback
+        const imgAlt = typeof alt === 'string' ? alt : ''; // Ensure alt is a string, provide fallback
+
+        return (
+          <Box sx={{ my: 2 }}>
+            <Image
+              layout="responsive"
+              width={imgWidth}
+              height={imgHeight}
+              src={imgSrc}
+              alt={imgAlt}
+              objectFit="contain"
+              className="rounded-lg shadow-lg"
+              {...restProps}
+            />
+          </Box>
+        );
+      },
       details: ({node, ...props}) => <details className="bg-white/5 rounded-lg border border-white/20 p-4 my-2" {...props} />,
       summary: ({node, ...props}) => <summary className="font-semibold text-cyan-200 cursor-pointer hover:text-cyan-100" {...props} />,
     }}
@@ -84,13 +152,13 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
 );
 
 const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user }) => {
-  const bubbleBg = isUser ? 'bg-cyan-500/30' : ''; // Keep current user bg
+  const bubbleBg = isUser ? 'bg-cyan-500/30' : '';
   const bubbleText = isUser ? 'text-white' : 'text-gray-100';
-  const bubbleBorder = isUser ? '' : ''; // Remove user border
-  const bubbleShape = isUser ? 'rounded-lg' : ''; // Simplify user shape
+  const bubbleBorder = isUser ? '' : '';
+  const bubbleShape = isUser ? 'rounded-lg' : '';
 
-  const [menuOpenState, setMenuOpenState] = useState(false); // Changed to boolean
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // Reverted to HTMLElement | null
+  const [menuOpenState, setMenuOpenState] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [copiedText, setCopiedText] = useState(false);
 
   const formatTimestamp = (timestamp?: number) => {
@@ -106,7 +174,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
   };
 
   const handleMoreVertClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget); // Anchor the menu to the IconButton
+    setAnchorEl(event.currentTarget);
     setMenuOpenState(true);
   };
 
@@ -128,14 +196,14 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          gap: '8px', // gap-2 (1 unit = 4px, so 2*4 = 8px)
-          animation: 'fade-in-up 0.3s ease-out', // animate-fade-in-up (needs to be defined in global css or emotion/styled-components)
-          marginBottom: '16px', // mb-4
-          width: '100%', // w-full
+          gap: '8px',
+          animation: 'fade-in-up 0.3s ease-out',
+          marginBottom: '16px',
+          width: '100%',
         }}
       >
-        <div className="flex justify-between items-center w-full"> {/* New flex container */}
-          <div className="flex items-center gap-2"> {/* Existing profile and name */}
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
               <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
             </div>
@@ -143,24 +211,20 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
           </div>
           <IconButton
             size="small"
-            onClick={handleMoreVertClick} // New handler
+            onClick={handleMoreVertClick}
             sx={{ color: 'white' }}
           >
             <MoreVertIcon />
           </IconButton>
         </div>
-        <ButtonBase
-          component="div"
+        <Box
           sx={{
             display: 'block',
             width: '100%',
             textAlign: 'left',
             borderRadius: '0.5rem', // rounded-lg
             p: 1.5, // p-3
-            cursor: 'pointer',
           }}
-          // onClick={handleClick} // Removed
-          // {...longPressEventHandlers} // Removed
         >
           <div className="w-full text-gray-100">
             <MarkdownRenderer content={msg.content} />
@@ -170,27 +234,27 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
               </Typography>
             )}
           </div>
-        </ButtonBase>
+        </Box>
         <Menu
-            anchorEl={anchorEl} // Anchor to the IconButton
+            anchorEl={anchorEl}
             open={menuOpenState}
             onClose={handleClose}
             MenuListProps={{
               'aria-labelledby': 'basic-button',
             }}
-            PaperProps={{ // Apply styling to the Menu's paper component
+            PaperProps={{
               sx: {
-                bgcolor: 'rgba(30, 30, 30, 0.9)', // Dark background
+                bgcolor: 'rgba(30, 30, 30, 0.9)',
                 color: 'white',
               }
             }}
             anchorOrigin={{
-              vertical: 'bottom', // Menu's top aligns with anchor's bottom
-              horizontal: 'right', // Menu's right aligns with anchor's right
+              vertical: 'bottom',
+              horizontal: 'right',
             }}
             transformOrigin={{
-              vertical: 'top', // Menu's top aligns with its own top
-              horizontal: 'right', // Menu's right aligns with its own right
+              vertical: 'top',
+              horizontal: 'right',
             }}
           >
             <MenuItem onClick={handleCopy} sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}>
@@ -216,9 +280,9 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
       sx={{
         display: 'flex',
         alignItems: 'flex-start',
-        gap: '12px', // gap-3 (1 unit = 4px, so 3*4 = 12px)
+        gap: '12px',
         justifyContent: 'flex-end',
-        animation: 'fade-in-up 0.3s ease-out', // animate-fade-in-up
+        animation: 'fade-in-up 0.3s ease-out',
       }}
     >
       <div

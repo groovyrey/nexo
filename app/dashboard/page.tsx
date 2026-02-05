@@ -1,12 +1,13 @@
+"use client";
 import React from 'react';
-import { FiUser, FiMail, FiKey } from 'react-icons/fi';
+import { FiUser, FiMail, FiKey, FiActivity } from 'react-icons/fi';
 import Link from 'next/link';
 import { useAuthContext } from '../../lib/context';
 import Image from 'next/image';
-import Button from '@mui/material/Button'; // New import
-import ArrowRightIcon from '@mui/icons-material/ArrowRight'; // New import
+import Button from '@mui/material/Button';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
-const LoggedInHomepage = () => {
+const DashboardPage = () => {
   const authContext = useAuthContext();
 
   // If authContext is null, it means the user session is not yet loaded or user is not logged in.
@@ -57,29 +58,24 @@ const LoggedInHomepage = () => {
         <Button
           component={Link} // Use the Next.js Link component
           href="/chat/default"     // Pass href directly to the Button
-          variant="contained"
+          variant="gradient"
           endIcon={<ArrowRightIcon />}
-          sx={{
-            background: 'linear-gradient(to right, #06b6d4, #2563eb)', // Tailwind's from-cyan-500 to-blue-600
-            color: 'white',
-            px: 3, // Tailwind's px-7 is roughly px:3 in MUI default spacing
-            py: 1.5, // Tailwind's py-3 is roughly py:1.5
-            borderRadius: '9999px', // rounded-full
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
-            '&:hover': {
-              boxShadow: '0 20px 25px -5px rgba(6, 182, 212, 0.5), 0 8px 10px -6px rgba(6, 182, 212, 0.5)', // hover:shadow-cyan-500/50
-              transform: 'scale(1.05)',
-              transition: 'all 0.3s ease-in-out',
-              background: 'linear-gradient(to right, #0891b2, #1d4ed8)', // Darker gradient on hover
-            },
-            fontSize: '1rem', // font-semibold for similar size
-          }}
         >
           Start Chatting with Nexo
+        </Button>
+        {/* Link to Usage Page */}
+        <Button
+          component={Link} // Use the Next.js Link component
+          href="/dashboard/usage"     // Pass href directly to the Button
+          variant="gradient"
+          endIcon={<FiActivity />} // Using FiActivity for usage page
+          sx={{ mt: 2 }} // Add some top margin for spacing
+        >
+          View Usage
         </Button>
       </div>
     </div>
   );
 };
 
-export default LoggedInHomepage;
+export default DashboardPage;

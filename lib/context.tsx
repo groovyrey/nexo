@@ -12,7 +12,7 @@ export interface User {
   photoURL: string | null;
 }
 
-const AuthContext = createContext<{ user: User | null } | null>(null);
+const AuthContext = createContext<{ user: User | null, loading: boolean } | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const auth = useAuth();
@@ -20,5 +20,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuthContext = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === null) {
+    throw new Error("useAuthContext must be used within an AuthProvider");
+  }
+  return context;
 };

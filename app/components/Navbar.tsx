@@ -2,9 +2,9 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Divider } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { FiLogIn, FiLogOut, FiMessageSquare } from "react-icons/fi";
+import { FiLogIn, FiLogOut, FiMessageSquare, FiLayout } from "react-icons/fi";
 import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle, signOutWithGoogle } from "@/lib/auth";
 import { useNotification } from "@/lib/notification"; // Import useNotification
@@ -23,7 +23,7 @@ const Navbar = () => {
 
 
   const handleNavigateToConversations = () => {
-    router.push('/chat');
+    router.push('/dashboard');
     setDrawerOpen(false); // Close drawer after navigation
   };
 
@@ -42,7 +42,7 @@ const Navbar = () => {
                   </Typography>
                 </Box>          
                   {/* Right section: Auth buttons and Conversations button (Desktop) and Mobile Menu Icon */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 2 } }}> {/* Gap is 0 for xs to keep icon close */}
+                  <Box sx={{ display: { xs: 0, sm: 2 }, alignItems: 'center', gap: { xs: 0, sm: 2 } }}> {/* Gap is 0 for xs to keep icon close */}
                     <IconButton
                       color="inherit"
                       aria-label="open drawer"
@@ -68,8 +68,24 @@ const Navbar = () => {
                               },
                             }}
                           >
+                            <FiLayout className="mr-1" />
+                            Dashboard
+                          </Button>
+                          <Button
+                            variant="text"
+                            color="inherit"
+                            onClick={() => {
+                              router.push('/chat');
+                            }}
+                            sx={{
+                              color: 'white',
+                              '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 0.1)', // Subtle hover background
+                              },
+                            }}
+                          >
                             <FiMessageSquare className="mr-1" />
-                            Conversations
+                            Chat
                           </Button>
                           <Button
                             variant="contained"
@@ -114,72 +130,105 @@ const Navbar = () => {
                           <FiLogIn className="mr-1" />
                           Sign in with Google
                         </Button>
-                                  )}
-                                </Box>
-                              </Box>
-                            </Toolbar>
-                            <Button onClick={() => showNotification("This is a test notification!", "success")} sx={{ display: { xs: 'none', sm: 'block' }, color: 'white' }}>
-                              Test Notification
-                            </Button>
+                      )}
+                    </Box> {/* Closing for desktop navigation Box */}
+                  </Box> {/* Closing for auth buttons and mobile menu Box */}
+                </Toolbar>
+
       {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
         onClose={handleDrawerToggle}
         sx={{
-          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240, bgcolor: '#1a1a1a', color: 'white' },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box', 
+            width: 250, 
+            bgcolor: 'rgba(26, 26, 26, 0.8)', // Semi-transparent background
+            color: 'white',
+            backdropFilter: 'blur(5px)', // Blur effect
+          },
         }}
       >
         <Box
-          sx={{ width: 240 }}
+          sx={{ width: 250, p: 2 }}
           role="presentation"
           onClick={handleDrawerToggle}
           onKeyDown={handleDrawerToggle}
         >
-          <Box sx={{ p: 2, display: 'flex', alignItems: 'center', bgcolor: '#1a1a1a', borderBottom: '1px solid rgba(68, 68, 68, 0.7)' }}>
+          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid rgba(68, 68, 68, 0.7)' }}>
             {user ? (
               <>
                 <Avatar
-                  src={user.photoURL || undefined} // Use user photo, undefined for fallback
+                  src={user.photoURL || undefined}
                   alt={user.displayName || "User Avatar"}
-                  sx={{ width: 32, height: 32 }}
-                >{user.displayName ? user.displayName[0] : 'U'}</Avatar>
-                <Typography variant="h6" component="div" sx={{ ml: 1, color: 'white' }}>
+                  sx={{ width: 64, height: 64, mb: 1 }}
+                >{user.displayName ? user.displayName.charAt(0) : 'U'}</Avatar>
+                <Typography variant="h6" component="div" sx={{ color: 'white' }}>
                   {user.displayName || "User"}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'lightgray' }}>
+                  {user.email}
                 </Typography>
               </>
             ) : (
               <>
-                <Avatar sx={{ width: 32, height: 32 }}>G</Avatar> {/* Generic 'G' for Guest */}
-                <Typography variant="h6" component="div" sx={{ ml: 1, color: 'white' }}>
+                <Avatar sx={{ width: 64, height: 64, mb: 1 }}>G</Avatar>
+                <Typography variant="h6" component="div" sx={{ color: 'white' }}>
                   Guest
                 </Typography>
               </>
             )}
           </Box>
           <List>
-            {user && ( // Render Conversations only if user is logged in
-              <ListItem disablePadding>
-                <ListItemButton onClick={handleNavigateToConversations}>
-                  <ListItemIcon sx={{ color: 'white' }}>
-                    <FiMessageSquare />
-                  </ListItemIcon>
-                  <ListItemText primary="Conversations" />
-                </ListItemButton>
-              </ListItem>
+            {user && (
+              <>
+                            <ListItem disablePadding sx={{ my: 1 }}>
+                              <ListItemButton
+                                onClick={() => {
+                                  router.push('/dashboard');
+                                  setDrawerOpen(false);
+                                }}
+                                sx={{ borderRadius: '8px', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
+                              >
+                                <ListItemIcon sx={{ color: 'white' }}>
+                                  <FiLayout />
+                                </ListItemIcon>
+                                <ListItemText primary="Dashboard" />
+                              </ListItemButton>
+                            </ListItem>
+                            <ListItem disablePadding sx={{ my: 1 }}>
+                              <ListItemButton
+                                onClick={() => {
+                                  router.push('/chat');
+                                  setDrawerOpen(false);
+                                }}
+                                sx={{ borderRadius: '8px', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
+                              >
+                                <ListItemIcon sx={{ color: 'white' }}>
+                                  <FiMessageSquare />
+                                </ListItemIcon>
+                                <ListItemText primary="Chat" />
+                              </ListItemButton>
+                            </ListItem>
+              </>
             )}
+            <Box sx={{ flexGrow: 1 }} />
+            <Divider sx={{ my: 1, bgcolor: 'rgba(68, 68, 68, 0.7)' }} />
             {user ? (
-              // Logged-in state (Mobile Drawer)
               <ListItem disablePadding>
-                <ListItemButton onClick={async () => {
-                  try {
-                    await signOutWithGoogle();
-                    showNotification("Signed out successfully!", "success");
-                  } catch (error) {
-                    console.error("Sign Out Error:", error);
-                    showNotification("Failed to sign out. Please try again.", "error");
-                  }
-                }}>
+                <ListItemButton 
+                  onClick={async () => {
+                    try {
+                      await signOutWithGoogle();
+                      showNotification("Signed out successfully!", "success");
+                    } catch (error) {
+                      console.error("Sign Out Error:", error);
+                      showNotification("Failed to sign out. Please try again.", "error");
+                    }
+                  }}
+                  sx={{ borderRadius: '8px', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
+                >
                   <ListItemIcon sx={{ color: 'white' }}>
                     <FiLogOut />
                   </ListItemIcon>
@@ -187,17 +236,19 @@ const Navbar = () => {
                 </ListItemButton>
               </ListItem>
             ) : (
-              // Logged-out state (Mobile Drawer)
               <ListItem disablePadding>
-                <ListItemButton onClick={async () => {
-                  try {
-                    await signInWithGoogle();
-                    showNotification("Signed in successfully!", "success");
-                  } catch (error) {
-                    console.error("Sign In Error:", error);
-                    showNotification("Failed to sign in. Please try again.", "error");
-                  }
-                }}>
+                <ListItemButton 
+                  onClick={async () => {
+                    try {
+                      await signInWithGoogle();
+                      showNotification("Signed in successfully!", "success");
+                    } catch (error) {
+                      console.error("Sign In Error:", error);
+                      showNotification("Failed to sign in. Please try again.", "error");
+                    }
+                  }}
+                  sx={{ borderRadius: '8px', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
+                >
                   <ListItemIcon sx={{ color: 'white' }}>
                     <FiLogIn />
                   </ListItemIcon>

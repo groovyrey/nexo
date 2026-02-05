@@ -6,13 +6,18 @@ import { red } from '@mui/material/colors';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#556cd6',
+      main: '#4f46e5',
     },
     secondary: {
       main: '#19857b',
     },
     error: {
       main: red.A400,
+    },
+    text: {
+      primary: '#ffffff', // White text for primary
+      secondary: '#b0b0b0', // Light grey text for secondary
+      disabled: '#808080', // Grey text for disabled
     },
   },
   components: {
@@ -25,6 +30,40 @@ const theme = createTheme({
       },
     },
     MuiButton: {
+      variants: [
+        {
+          props: { variant: 'cta' },
+          style: {
+            color: 'white',
+            padding: '12px 28px', // px-7 py-3
+            borderRadius: '9999px', // rounded-full
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
+            transition: 'all 0.2s ease-in-out', // transition-all transform
+            '&:hover': {
+              boxShadow: '0 20px 25px -5px rgba(79, 70, 229, 0.5), 0 8px 10px -6px rgba(79, 70, 229, 0.5)', // hover:shadow-indigo-500/50
+              transform: 'scale(1.05)', // hover:scale-105
+              backgroundColor: '#4f46e5', // Keep background color on hover
+            },
+          },
+        },
+        {
+          props: { variant: 'gradient' },
+          style: {
+            background: 'linear-gradient(to right, #06b6d4, #2563eb)', // Tailwind's from-cyan-500 to-blue-600
+            color: 'white',
+            padding: '12px 24px',
+            borderRadius: '9999px', // rounded-full
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
+            '&:hover': {
+              boxShadow: '0 20px 25px -5px rgba(6, 182, 212, 0.5), 0 8px 10px -6px rgba(6, 182, 212, 0.5)', // hover:shadow-cyan-500/50
+              transform: 'scale(1.05)',
+              transition: 'all 0.3s ease-in-out',
+              background: 'linear-gradient(to right, #0891b2, #1d4ed8)', // Darker gradient on hover
+            },
+            fontSize: '1rem', // font-semibold for similar size
+          },
+        },
+      ],
       styleOverrides: {
         root: {
           borderRadius: 9999, // Super rounded corners for all buttons
