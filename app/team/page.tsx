@@ -114,7 +114,8 @@ const TeamPage = () => {
               {teamMembers.map((member, index) => {
                 const itemXOffset = index * ITEM_TOTAL_WIDTH;
                 // Calculate the x position of the inner-carousel that would center this item in the viewport
-                const centerAlignedX = (carousel.current?.offsetWidth / 2 || 0) - (itemXOffset + (ITEM_WIDTH / 2));
+                const viewportWidth = carousel.current?.offsetWidth || 0;
+                const centerAlignedX = (viewportWidth / 2) - (itemXOffset + (ITEM_WIDTH / 2));
 
                 const scale = useTransform(
                   x, // The MotionValue from the draggable inner-carousel
