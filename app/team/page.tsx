@@ -6,7 +6,7 @@ import { FiCode, FiMonitor, FiServer, FiFigma, FiCheckSquare, FiBook, FiDatabase
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 
 const TeamPage = () => {
-  const carousel = useRef(null);
+  const carousel = useRef<HTMLDivElement>(null);
   const [carouselWidth, setCarouselWidth] = useState(0);
 
   useEffect(() => {
