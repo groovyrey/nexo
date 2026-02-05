@@ -34,21 +34,21 @@ const UsagePage = () => {
           Current Billing Period: {usageData.currentPeriod}
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
+          <Grid item component="div" xs={12} sm={4}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiMessageSquare color="lightblue" style={{ marginRight: '8px' }} />
               <Typography variant="body2">Messages Sent:</Typography>
               <Chip label={usageData.messagesSent} color="primary" size="small" sx={{ ml: 1 }} />
             </Box>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item component="div" xs={12} sm={4}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiCpu color="lightgreen" style={{ marginRight: '8px' }} />
               <Typography variant="body2">API Calls Made:</Typography>
               <Chip label={usageData.apiCalls} color="success" size="small" sx={{ ml: 1 }} />
             </Box>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item component="div" xs={12} sm={4}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiDatabase color="orange" style={{ marginRight: '8px' }} />
               <Typography variant="body2">Data Processed:</Typography>
@@ -63,28 +63,28 @@ const UsagePage = () => {
           Billing Details
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+          <Grid item component="div" xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiCalendar color="gold" style={{ marginRight: '8px' }} />
               <Typography variant="body2">Last Reset:</Typography>
               <Chip label={usageData.lastReset} size="small" sx={{ ml: 1, bgcolor: 'rgba(255,215,0,0.2)' }} />
             </Box>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item component="div" xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiClock color="pink" style={{ marginRight: '8px' }} />
               <Typography variant="body2">Next Reset:</Typography>
               <Chip label={usageData.nextReset} size="small" sx={{ ml: 1, bgcolor: 'rgba(255,192,203,0.2)' }} />
             </Box>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item component="div" xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiDollarSign color="lime" style={{ marginRight: '8px' }} />
               <Typography variant="body2">Current Plan:</Typography>
               <Chip label={usageData.plan} color="success" size="small" sx={{ ml: 1 }} />
             </Box>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item component="div" xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', p: 1, bgcolor: '#333', borderRadius: '8px' }}>
               <FiBarChart2 color="cyan" style={{ marginRight: '8px' }} />
               <Typography variant="body2">Estimated Cost:</Typography>
