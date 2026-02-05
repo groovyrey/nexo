@@ -32,6 +32,7 @@ const ConversationsPage = () => {
   const [conversations, setConversations] = useState<ConversationMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const { showNotification } = useNotification();
+  const [defaultConversationCreated, setDefaultConversationCreated] = useState(false);
 
   // If authContext is null, it means the user session is not yet loaded or user is not logged in.
   // The useEffect below will handle redirection if user is null.
@@ -167,9 +168,13 @@ const ConversationsPage = () => {
       unsubscribe = getConversationList(user.uid, (convos) => {
         setConversations(convos);
         setLoading(false);
-        // If no conversations exist, create a default one with fixed ID "default"
-        if (convos.length === 0) {
-          handleCreateNewConversation("default", false); // Create default, but DO NOT redirect immediately
+        // If no conversations exist, create a default one with fixed ID "default" and redirect
+        if (convos.length === 0 && !defaultConversationCreated) {
+          handleCreateNewConversation("default", true); // Create default and redirect
+          setDefaultConversationCreated(true); // Mark as created to prevent re-triggering
+        } else if (convos.length > 0 && !convos.some(convo => convo.id === "default")) {
+            // If conversations exist but "default" is missing, create it without immediate redirection
+            handleCreateNewConversation("default", false);
         }
       });
     }
@@ -178,7 +183,7 @@ const ConversationsPage = () => {
         unsubscribe(); // Cleanup the listener
       }
     };
-  }, [user, handleCreateNewConversation]); // Depend on user and handleCreateNewConversation
+  }, [user, handleCreateNewConversation, defaultConversationCreated, router]); // Added defaultConversationCreated and router to dependency array
 
 
 

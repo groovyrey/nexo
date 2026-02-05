@@ -5,7 +5,9 @@ import { useRouter, useParams } from 'next/navigation'; // Added useParams
 import Image from 'next/image';
 import ChatMessage from '../components/ChatMessage';
 import { useAuthContext } from '@/lib/context';
-import { getConversation, writeMessage, getConversationMetadata } from '@/lib/realtimedb';
+import { getConversation, writeMessage, getConversationMetadata, createConversation } from '@/lib/realtimedb';
+import { database } from "@/lib/firebase";
+import { ref, get } from "firebase/database";
 import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -35,36 +37,51 @@ const ChatPage = () => {
   useEffect(() => {
     if (user === null) {
       router.push('/');
+      return;
     }
-  }, [user, router]);
 
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    if (user && conversationId) { // Ensure conversationId is available
-      unsubscribe = getConversation(user.uid, conversationId as string, (messages) => {
-        setMessages(messages);
-      });
+    if (!user || !conversationId) {
+      return;
     }
-    return () => {
-      if (unsubscribe) {
-        unsubscribe(); // Cleanup the listener
+
+    const conversationNodeRef = ref(database, `conversations/${user.uid}/${conversationId as string}`);
+    let unsubscribeMessages: (() => void) | undefined;
+    let unsubscribeMetadata: (() => void) | undefined;
+
+    const checkAndCreateConversation = async () => {
+      try {
+        const snapshot = await get(conversationNodeRef);
+        if (!snapshot.exists()) {
+          console.log(`Conversation ${conversationId} does not exist. Creating a new one.`);
+          await createConversation(user.uid, "Default", conversationId as string);
+        }
+
+        // Set up listeners after ensuring conversation exists
+        unsubscribeMessages = getConversation(user.uid, conversationId as string, (messages) => {
+          setMessages(messages);
+        });
+        unsubscribeMetadata = getConversationMetadata(user.uid, conversationId as string, (metadata) => {
+          setConversationTitle(metadata.title);
+        });
+
+      } catch (error) {
+        console.error("Error checking or creating conversation:", error);
+        // Handle error, e.g., redirect to an error page or show a message
+        // For now, we'll log and return, which will leave the page in a loading state or default.
       }
     };
-  }, [user, conversationId]); // Depend on conversationId
 
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    if (user && conversationId) {
-      unsubscribe = getConversationMetadata(user.uid, conversationId as string, (metadata) => {
-        setConversationTitle(metadata.title);
-      });
-    }
+    checkAndCreateConversation();
+
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
+      if (unsubscribeMessages) {
+        unsubscribeMessages();
+      }
+      if (unsubscribeMetadata) {
+        unsubscribeMetadata();
       }
     };
-  }, [user, conversationId]); // Depend on user and conversationId
+  }, [user, conversationId, router]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });

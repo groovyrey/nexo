@@ -129,7 +129,7 @@ export const writeMessage = async (userId: string, conversationId: string, messa
 
 // A function to get all messages from a conversation and listen for new ones
 export const getConversation = (userId: string, conversationId:string, callback: (messages: { role: string; content: string; timestamp: number }[]) => void): (() => void) => {
-  const messagesRef = query(ref(database, `conversations/${userId}/${conversationId}/messages`), limitToLast(20));
+  const messagesRef = query(ref(database, `conversations/${userId}/${conversationId}/messages`));
   return onValue(messagesRef, (snapshot) => {
     const data = snapshot.val();
     const messages = data ? Object.values(data) as { role: string; content: string; timestamp: number }[] : [];
