@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function webSearch(query: string) {
-  const apiKey = process.env.CRAWLEO_API_KEY;
+  const apiKey = process.env.LANGSEARCH_API_KEY;
   if (!apiKey) {
-    throw new Error('CRAWLEO_API_KEY is not set');
+    throw new Error('LANGSEARCH_API_KEY is not set');
   }
 
-  const url = `https://api.crawleo.com/v1/search?query=${encodeURIComponent(
-    query
-  )}`;
+  const url = `https://api.langsearch.com/v1/web-search`;
 
   const response = await fetch(url, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json', // Keep Accept header for good measure
     },
+    body: JSON.stringify({ query, count: 1, summary: true }),
   });
 
   if (!response.ok) {

@@ -1,53 +1,66 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { InferenceClient } from '@huggingface/inference'; 
+import { tools } from '../../../lib/tools'; 
+import { systemPrompt } from '../../../lib/systemPrompt'; 
+import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
 
-export async function POST(request: Request) {
+const hf = new InferenceClient(process.env.HF_TOKEN!, { provider: "together" });
+
+export async function POST(req: Request) {
   try {
-    const { messages, userName } = await request.json();
-
-    const hfToken = process.env.HF_TOKEN;
-    if (!hfToken) {
-      console.error('HF_TOKEN is not set in environment variables.');
-      return NextResponse.json({ error: 'Hugging Face Token not configured' }, { status: 500 });
-    }
-
-    const client = new OpenAI({
-      baseURL: "https://router.huggingface.co/v1",
-      apiKey: hfToken,
-    });
-
-    const origin = new URL(request.url).origin;
-    const teamPageUrl = `${origin}/team`;
-
-    const systemMessageContent = userName 
-      ? `Your name is Nexo. You are a helpful AI assistant. You are currently chatting with a user with a name ${userName}. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}. All your responses should be in Markdown format.`
-      : `Your name is Nexo. You are a helpful AI assistant. Nexo AI was created by Nexo Team and this is the page of the members: ${teamPageUrl}. All your responses should be in Markdown format.`;
-
-    const transformedMessages = [
-      {"role": "system", "content": systemMessageContent},
-      ...messages.map((msg: { role: string; content: string }) => ({
-        ...msg,
-        role: msg.role === 'model' ? 'assistant' : msg.role,
-      }))
-    ];
-
-    const completion = await client.chat.completions.create({
-        model: "deepseek-ai/DeepSeek-V3.2",
-        messages: transformedMessages,
-    });
-
-    const transformedResponse = {
-      choices: [{
-        message: {
-          role: 'model',
-          content: completion.choices[0].message.content,
-        },
-      }],
-    };
-
-    return NextResponse.json(transformedResponse);
-  } catch (error) {
-    console.error('API route error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        const { messages } = await req.json();
+        const userMessage = messages[messages.length - 1].content;
+        console.log("User message:", userMessage);    
+        // 1️⃣ Ask model what to do, passing the tool definitions
+        const modelResponse = await hf.chatCompletion({
+          model: "Qwen/Qwen2.5-7B-Instruct",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userMessage }
+          ],
+          tools: toolDefinitions, // Pass tool definitions here
+        });
+        console.log("Model initial response:", JSON.stringify(modelResponse, null, 2));
+    
+        const message = modelResponse.choices[0].message;
+    
+        // 2️⃣ Check for tool calls
+        if (message.tool_calls && message.tool_calls.length > 0) {
+          const toolCall = message.tool_calls[0]; // Assuming one tool call for simplicity
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
+          console.log("Tool call detected:", { functionName, functionArgs });
+    
+          if (tools[functionName]) {
+            const toolResult = await tools[functionName](functionArgs.query);
+            console.log("Tool execution result (summary):", toolResult.results && toolResult.results.length > 0 ? toolResult.results[0].summary : "No summary found.");
+    
+            // 3️⃣ Send tool result back to model for final answer
+            const finalResponse = await hf.chatCompletion({
+              model: "Qwen/Qwen2.5-7B-Instruct",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userMessage },
+                {
+                  role: "tool", // Use 'tool' role for tool output
+                  content: JSON.stringify(toolResult),
+                  tool_call_id: toolCall.id,
+                },
+              ]
+            });
+            console.log("Model final response:", JSON.stringify(finalResponse, null, 2));
+            return NextResponse.json({ response: finalResponse.choices[0].message.content });
+          } else {
+            console.error(`Tool "${functionName}" not found.`);
+            return NextResponse.json({ error: `Tool "${functionName}" not found.` }, { status: 500 });
+          }
+        } else {
+          // No tool needed, or model generated a direct response
+          console.log("No tool call. Model direct response:", JSON.stringify(message, null, 2));
+          return NextResponse.json({ response: message.content });
+        }
+      } catch (err: any) {
+        console.error("API route error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

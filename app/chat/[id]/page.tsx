@@ -103,7 +103,7 @@ const ChatPage = () => {
       }
 
       const data = await response.json();
-      const botMessageContent = data.choices[0].message.content;
+      const botMessageContent = data.response;
       
       const botMessage = { role: 'model', content: botMessageContent, timestamp: Date.now() };
       writeMessage(user.uid, conversationId as string, botMessage);

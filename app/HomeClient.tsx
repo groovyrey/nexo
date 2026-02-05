@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Image from 'next/image';
 import { FiArrowRight, FiMessageSquare, FiLayers, FiUser, FiTwitter, FiLinkedin, FiGithub } from 'react-icons/fi';
+import ToolsDisplay from './components/ToolsDisplay'; // Import ToolsDisplay
+import { userFriendlyTools } from '../lib/userFriendlyTools'; // Import userFriendlyTools
 
 export default function HomeClient() {
   const authContext = useAuthContext();
@@ -69,6 +71,9 @@ export default function HomeClient() {
               </div>
             </div>
           </section>
+
+          {/* Tools Display Section */}
+          <ToolsDisplay toolsList={userFriendlyTools} />
 
           {/* CTA Section */}
           <section className="py-20 px-4 md:px-8 bg-black">

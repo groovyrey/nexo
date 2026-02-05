@@ -78,7 +78,11 @@ export const getConversationList = (userId: string, callback: (conversations: Co
 // A function to write a new message to a conversation
 export const writeMessage = async (userId: string, conversationId: string, message: { role: string; content: string; timestamp?: number }) => {
   const messagesRef = ref(database, `conversations/${userId}/${conversationId}/messages`);
-  const messageWithTimestamp = { ...message, timestamp: Date.now() };
+  
+  // Ensure content is a string, default to empty string if undefined or null
+  const safeContent = message.content === undefined || message.content === null ? "" : String(message.content);
+  
+  const messageWithTimestamp = { ...message, content: safeContent, timestamp: Date.now() };
 
   // Get current messages to check count and identify oldest if needed
   const snapshot = await get(query(messagesRef, orderByChild('timestamp')));
