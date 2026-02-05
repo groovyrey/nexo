@@ -159,3 +159,82 @@ export const updateConversationTitle = async (userId: string, conversationId: st
     title: newTitle,
   });
 };
+
+export interface ConversationStats {
+  id: string;
+  title: string;
+  messageCount: number;
+  lastMessageSnippet: string;
+  timestamp: number;
+}
+
+export interface MessageStats {
+  totalMessages: number;
+  mostMessagesConvo: { title: string; messageCount: number; lastMessageSnippet: string; timestamp: number } | null;
+  leastMessagesConvo: { title: string; messageCount: number; lastMessageSnippet: string; timestamp: number } | null;
+  allConversationsStats: ConversationStats[]; // New field for the graph
+}
+
+export const getMessageStats = async (userId: string): Promise<MessageStats> => {
+  const conversationsRef = ref(database, `conversations/${userId}`);
+  const conversationsSnapshot = await get(conversationsRef);
+  const conversationsData = conversationsSnapshot.val();
+
+  if (!conversationsData) {
+    return {
+      totalMessages: 0,
+      mostMessagesConvo: null,
+      leastMessagesConvo: null,
+      allConversationsStats: [],
+    };
+  }
+
+  let totalMessages = 0;
+  let mostMessagesConvo: { title: string; messageCount: number; lastMessageSnippet: string; timestamp: number } | null = null;
+  let leastMessagesConvo: { title: string; messageCount: number; lastMessageSnippet: string; timestamp: number } | null = null;
+  const allConversationsStats: ConversationStats[] = [];
+
+  for (const conversationId of Object.keys(conversationsData)) {
+    const messagesRef = ref(database, `conversations/${userId}/${conversationId}/messages`);
+    const messagesSnapshot = await get(messagesRef);
+    const messagesData = messagesSnapshot.val();
+    const currentConvoMessageCount = messagesData ? Object.keys(messagesData).length : 0;
+    const conversationTitle = conversationsData[conversationId]?.title || "Untitled Conversation";
+    const conversationLastMessageSnippet = conversationsData[conversationId]?.lastMessageSnippet || "No messages yet.";
+    const conversationTimestamp = conversationsData[conversationId]?.timestamp || 0;
+
+    totalMessages += currentConvoMessageCount;
+
+    const currentConvoStats: ConversationStats = {
+      id: conversationId,
+      title: conversationTitle,
+      messageCount: currentConvoMessageCount,
+      lastMessageSnippet: conversationLastMessageSnippet,
+      timestamp: conversationTimestamp,
+    };
+    allConversationsStats.push(currentConvoStats);
+
+
+    if (!mostMessagesConvo || currentConvoMessageCount > mostMessagesConvo.messageCount) {
+      mostMessagesConvo = {
+        title: conversationTitle,
+        messageCount: currentConvoMessageCount,
+        lastMessageSnippet: conversationLastMessageSnippet,
+        timestamp: conversationTimestamp,
+      };
+    }
+
+    if (!leastMessagesConvo || currentConvoMessageCount < leastMessagesConvo.messageCount) {
+      leastMessagesConvo = {
+        title: conversationTitle,
+        messageCount: currentConvoMessageCount,
+        lastMessageSnippet: conversationLastMessageSnippet,
+        timestamp: conversationTimestamp,
+      };
+    }
+  }
+
+  allConversationsStats.sort((a, b) => b.messageCount - a.messageCount); // Sort by message count descending
+
+  return { totalMessages, mostMessagesConvo, leastMessagesConvo, allConversationsStats };
+};
