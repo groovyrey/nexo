@@ -4,7 +4,7 @@ import { tools } from '../../../lib/tools';
 import { systemPrompt } from '../../../lib/systemPrompt'; 
 import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
 
-const hf = new InferenceClient(process.env.HF_TOKEN!, { provider: "together" });
+const hf = new InferenceClient(process.env.HF_TOKEN!);
 
 export async function POST(req: Request) {
   try {
