@@ -31,30 +31,39 @@ export async function POST(req: Request) {
           const functionArgs = JSON.parse(toolCall.function.arguments);
           console.log("Tool call detected:", { functionName, functionArgs });
     
-          if (tools[functionName]) {
-            const toolResult = await tools[functionName](functionArgs.query);
-            console.log("Tool execution result (summary):", toolResult.results && toolResult.results.length > 0 ? toolResult.results[0].summary : "No summary found.");
-    
-            // 3️⃣ Send tool result back to model for final answer
-            const finalResponse = await hf.chatCompletion({
-              model: "Qwen/Qwen2.5-7B-Instruct",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userMessage },
-                {
-                  role: "tool", // Use 'tool' role for tool output
-                  content: JSON.stringify(toolResult),
-                  tool_call_id: toolCall.id,
-                },
-              ]
-            });
-            console.log("Model final response:", JSON.stringify(finalResponse, null, 2));
-            return NextResponse.json({ response: finalResponse.choices[0].message.content });
-          } else {
-            console.error(`Tool "${functionName}" not found.`);
-            return NextResponse.json({ error: `Tool "${functionName}" not found.` }, { status: 500 });
-          }
-        } else {
+                    // Type guard to ensure functionName is a valid key of ToolsType
+                    if (Object.prototype.hasOwnProperty.call(tools, functionName)) {
+                      const toolFunction = tools[functionName as keyof typeof tools];
+                      
+                      let toolResult: any;
+                      if (functionName === 'webSearch') {
+                        toolResult = await toolFunction(functionArgs.query);
+                      } else if (functionName === 'getCurrentTime') {
+                        toolResult = await (toolFunction as typeof tools.getCurrentTime)();
+                      } else {
+                        return NextResponse.json({ error: `Tool "${functionName}" is not explicitly handled or recognized.` }, { status: 500 });
+                      }
+          
+                      console.log("Tool execution result (summary):", toolResult.results && toolResult.results.length > 0 ? toolResult.results[0].summary : "No summary found.");
+          
+                      // 3️⃣ Send tool result back to model for final answer
+                      const finalResponse = await hf.chatCompletion({
+                        model: "Qwen/Qwen2.5-7B-Instruct",
+                        messages: [
+                          { role: "system", content: systemPrompt },
+                          { role: "user", content: userMessage },
+                          {
+                            role: "tool", // Use 'tool' role for tool output
+                            content: JSON.stringify(toolResult),
+                            tool_call_id: toolCall.id,
+                          },
+                        ]
+                      });
+                      console.log("Model final response:", JSON.stringify(finalResponse, null, 2));
+                      return NextResponse.json({ response: finalResponse.choices[0].message.content });
+                    } else {
+                      return NextResponse.json({ error: `Tool "${functionName}" not found or recognized.` }, { status: 500 });
+                    }        } else {
           // No tool needed, or model generated a direct response
           console.log("No tool call. Model direct response:", JSON.stringify(message, null, 2));
           return NextResponse.json({ response: message.content });
