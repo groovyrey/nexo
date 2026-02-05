@@ -35,10 +35,6 @@ body {
   margin-bottom: 0.25em; /* Small space between list items */
 }
 
-
-
-
-
 /* Custom styling for AI message bold text */
 .ai-message strong {
   color: #93c5fd; /* Tailwind's blue-300 for theme alignment */
@@ -53,4 +49,12 @@ body {
   margin-bottom: 1.5em;
 }
 
-
+/* Carousel fading edge effect */
+.carousel-fading-edge {
+  mask-image: linear-gradient(to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 1) 10%,
+    rgba(0, 0, 0, 1) 90%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}

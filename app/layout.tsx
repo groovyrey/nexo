@@ -43,7 +43,7 @@ export default function RootLayout({
             <div className="flex flex-col flex-grow">
               <Navbar />
               <BreadcrumbsComponent />
-              <div className="flex-grow">
+              <div className="flex-grow min-h-[calc(100vh - 112px)]">
                 <SessionWrapper>{children}</SessionWrapper>
               </div>
             </div>
