@@ -67,8 +67,7 @@ export async function POST(req: Request) {
                                                       const finalResponse = await hf.chatCompletion({
                                                         model: "Qwen/Qwen2.5-7B-Instruct",
                                                         messages: [
-                                                          { role: "system", content: personalizedSystemPrompt },
-                                                          { role: "user", content: lastUserMessage },
+                                                          ...fullConversationForAI, // Include the full conversation history
                                                           {
                                                             role: "tool", // Use 'tool' role for tool output
                                                             content: JSON.stringify(toolResult),
