@@ -4,9 +4,9 @@ import { writeMemoryToConversation, retrieveConsolidatedMemory } from './realtim
 import { toolDefinitions } from './toolDefinitions';
 
 export type ToolsType = {
-  webSearch: (query: string, count?: number, summary?: boolean) => Promise<any>;
+  webSearch: (query: string) => Promise<any>;
   getCurrentTime: () => string;
-  writeMemory: (userId: string, conversationId: string, content: string) => string; // Changed to string for diagnosis
+  writeMemory: (userId: string, conversationId: string, content: string) => Promise<string>; // Restored original signature
   retrieveMemory: (userId: string, conversationId: string) => Promise<string | null>; // Updated signature
   listTools: () => string;
 };
@@ -18,9 +18,8 @@ export const tools: ToolsType = {
 
   getCurrentTime: () => new Date().toISOString(),
 
-  writeMemory: (userId: string, conversationId: string, content: string) => { // Removed async for diagnosis
-    console.log("Dummy writeMemory called with:", userId, conversationId, content);
-    return `Dummy memory written for ${userId}, ${conversationId} with content: "${content}"`;
+  writeMemory: async (userId: string, conversationId: string, content: string) => { // Restored async implementation
+    return writeMemoryToConversation(userId, conversationId, content);
   },
 
   retrieveMemory: async (userId: string, conversationId: string) => { // Removed query

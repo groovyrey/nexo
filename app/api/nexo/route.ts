@@ -49,7 +49,7 @@ export async function POST(req: Request) {
                                                       
                                                       let toolResult: any;
                                                       if (functionName === 'webSearch') {
-                                                        toolResult = await toolFunction(functionArgs.query);
+                                                        toolResult = await (toolFunction as typeof tools.webSearch)(functionArgs.query);
                                                       } else if (functionName === 'getCurrentTime') {
                                                         toolResult = await (toolFunction as typeof tools.getCurrentTime)();
                                                       } else if (functionName === 'writeMemory') { // Handle writeMemory
