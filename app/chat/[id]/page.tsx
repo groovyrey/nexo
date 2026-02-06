@@ -12,6 +12,13 @@ import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+interface ChatMessageType {
+  role: string;
+  content: string;
+  timestamp: number;
+  toolUsed?: string | null; // Added toolUsed
+}
+
 const ChatPage = () => {
   const authContext = useAuthContext();
   const router = useRouter();
@@ -27,7 +34,7 @@ const ChatPage = () => {
 
   const { user } = authContext;
 
-  const [messages, setMessages] = useState<{ role: string; content: string; timestamp: number }[]>([]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [conversationTitle, setConversationTitle] = useState('Loading...'); // New state for conversation title
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -98,7 +105,7 @@ const ChatPage = () => {
   const handleSendMessage = async () => {
     if (input.trim() === '' || !user || !conversationId) return; // Ensure conversationId is available
 
-    const newMessage = { role: 'user', content: input, timestamp: Date.now() };
+    const newMessage: ChatMessageType = { role: 'user', content: input, timestamp: Date.now() };
     writeMessage(user.uid, conversationId as string, newMessage);
     
     setInput('');
@@ -111,7 +118,7 @@ const ChatPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: allMessages, userName: user.displayName || user.email || user.uid }),
+        body: JSON.stringify({ messages: allMessages, userName: user.displayName || user.email || user.uid, userId: user.uid, conversationId }),
       });
 
       if (!response.ok) {
@@ -121,8 +128,9 @@ const ChatPage = () => {
 
       const data = await response.json();
       const botMessageContent = data.response;
+      const toolUsedByNexo = data.toolUsed; // <-- Capture toolUsed here
       
-      const botMessage = { role: 'model', content: botMessageContent, timestamp: Date.now() };
+      const botMessage: ChatMessageType = { role: 'model', content: botMessageContent, timestamp: Date.now(), toolUsed: toolUsedByNexo }; // <-- Add toolUsed to botMessage
       writeMessage(user.uid, conversationId as string, botMessage);
 
     } catch (error: unknown) {
@@ -131,7 +139,7 @@ const ChatPage = () => {
       if (error instanceof Error) {
         errorMessage = `Error: ${error.message}`;
       }
-      const systemMessage = { role: 'system', content: errorMessage, timestamp: Date.now() };
+      const systemMessage: ChatMessageType = { role: 'system', content: errorMessage, timestamp: Date.now() };
       writeMessage(user.uid, conversationId as string, systemMessage);
 
     } finally {

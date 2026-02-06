@@ -137,6 +137,19 @@ export const getConversation = (userId: string, conversationId:string, callback:
   });
 };
 
+export const writeMemoryToConversation = async (userId: string, conversationId: string, content: string) => {
+  const consolidatedMemoryRef = ref(database, `conversations/${userId}/${conversationId}/consolidatedMemory`);
+  await set(consolidatedMemoryRef, content); // Store the entire string
+  return `Memory updated. Current memory content: "${content}"`;
+};
+
+export const retrieveConsolidatedMemory = async (userId: string, conversationId: string): Promise<string | null> => {
+  const consolidatedMemoryRef = ref(database, `conversations/${userId}/${conversationId}/consolidatedMemory`);
+  const snapshot = await get(consolidatedMemoryRef);
+  const memoryContent = snapshot.val();
+  return memoryContent ? String(memoryContent) : null;
+};
+
 export const deleteConversation = async (userId: string, conversationId: string) => {
   const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
   await remove(conversationNodeRef);

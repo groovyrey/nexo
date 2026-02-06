@@ -22,17 +22,22 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Divider from '@mui/material/Divider';
-import MuiLink from '@mui/material/Link';
+import MuiLink from '@mui/material/Link'; // Ensure MuiLink is imported
 
-
+import BuildIcon from '@mui/icons-material/Build'; // New import
+import SearchIcon from '@mui/icons-material/Search'; // New import for webSearch
+import MemoryIcon from '@mui/icons-material/Memory'; // New import for retrieve/writeMemory
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'; // New import for listTools
 
 import { User } from '@/lib/context'; // Import User interface
 
+// Update ChatMessageProps interface
 interface ChatMessageProps {
   msg: {
     role: string;
     content: string;
     timestamp?: number;
+    toolUsed?: string | null; // Added toolUsed
   };
   isUser: boolean;
   user: User | null;
@@ -52,7 +57,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
           sx={{ color: 'info.main', '&:hover': { textDecoration: 'underline' } }}
         />
       ),
-      p: ({ node, ...props }) => <Typography variant="body1" sx={{ mb: 2, '&:last-child': { mb: 0 } }} {...props} />,
+      p: ({ node, ...props }) => <Typography variant="body1" sx={{ mb: 2, '&:last-child': { mb: 0 }, overflowWrap: 'break-word' }} {...props} />,
       li: ({ node, ...props }) => <Typography component="li" variant="body2" sx={{ mb: 1, '&:last-child': { mb: 0 } }} {...props} />,
       code: ({node, className, children, ...props}) => {
         const match = /language-(\w+)/.exec(className || '')
@@ -64,7 +69,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
               </Typography>
             </Box>
             <pre style={{ padding: '16px', overflowX: 'auto', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-              <code className={`!bg-transparent text-sm ${className}`} {...props}>
+              <code style={{ wordBreak: 'break-word' }} className={`!bg-transparent text-sm ${className}`} {...props}>
                 {children}
               </code>
             </pre>
@@ -155,7 +160,6 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
   const bubbleBg = isUser ? 'bg-cyan-500/30' : '';
   const bubbleText = isUser ? 'text-white' : 'text-gray-100';
   const bubbleBorder = isUser ? '' : '';
-  const bubbleShape = isUser ? 'rounded-lg' : '';
 
   const [menuOpenState, setMenuOpenState] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -208,6 +212,17 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
               <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
             </div>
             <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'rgb(229, 231, 235)' }}>Nexo AI</Typography>
+            {msg.toolUsed && ( // Conditionally render tool used indicator
+              <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, p: 0.5, borderRadius: '4px', bgcolor: 'rgba(255,255,255,0.1)' }}>
+                {msg.toolUsed === 'webSearch' && <SearchIcon fontSize="small" sx={{ color: 'cyan.400', mr: 0.5 }} />}
+                {(msg.toolUsed === 'writeMemory' || msg.toolUsed === 'retrieveMemory') && <MemoryIcon fontSize="small" sx={{ color: 'purple.400', mr: 0.5 }} />}
+                {msg.toolUsed === 'listTools' && <FormatListBulletedIcon fontSize="small" sx={{ color: 'green.400', mr: 0.5 }} />}
+                {!(msg.toolUsed === 'webSearch' || msg.toolUsed === 'writeMemory' || msg.toolUsed === 'retrieveMemory' || msg.toolUsed === 'listTools') && <BuildIcon fontSize="small" sx={{ color: 'grey.400', mr: 0.5 }} />}
+                <Typography variant="caption" sx={{ color: 'grey.300', fontSize: '0.7rem' }}>
+                  {msg.toolUsed}
+                </Typography>
+              </Box>
+            )}
           </div>
           <IconButton
             size="small"
@@ -222,11 +237,9 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
             display: 'block',
             width: '100%',
             textAlign: 'left',
-            borderRadius: '0.5rem', // rounded-lg
-            p: 1.5, // p-3
           }}
         >
-          <div className="w-full text-gray-100">
+          <div className="w-full text-gray-100 p-3">
             <MarkdownRenderer content={msg.content} />
             {msg.timestamp && (
               <Typography variant="caption" sx={{ fontSize: '0.75rem', marginTop: '8px', textAlign: 'left', color: 'rgb(156, 163, 175)' }}>
@@ -286,14 +299,15 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
       }}
     >
       <div
-        className={`relative p-3 max-w-[75%] ${bubbleBg} ${bubbleText} ${bubbleBorder} ${bubbleShape} font-sans`}
+        className={`relative rounded-lg max-w-[75%] ${bubbleBg} ${bubbleText} ${bubbleBorder} font-sans`}
       >
-        <MarkdownRenderer content={msg.content} />
+        <div className="p-3"><MarkdownRenderer content={msg.content} />
         {msg.timestamp && (
           <Typography variant="caption" sx={{ fontSize: '0.75rem', marginTop: '8px', textAlign: 'right', color: 'rgb(156, 163, 175)' }}>
             {formatTimestamp(msg.timestamp)}
           </Typography>
         )}
+      </div>
       </div>
       <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
         {user?.photoURL ? (
