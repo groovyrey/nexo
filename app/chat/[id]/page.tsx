@@ -11,6 +11,7 @@ import { ref, get } from "firebase/database";
 import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ButtonBase from '@mui/material/ButtonBase';
 
 interface ChatMessageType {
   role: string;
@@ -34,8 +35,10 @@ const ChatPage = () => {
 
   const { user } = authContext;
 
+  const [messagesToDisplayCount, setMessagesToDisplayCount] = useState(20);
+  const [allMessagesFromDB, setAllMessagesFromDB] = useState<ChatMessageType[]>([]);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
-  const [conversationTitle, setConversationTitle] = useState('Loading...'); // New state for conversation title
+  const [conversationTitle, setConversationTitle] = useState('Loading...');
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,8 +67,9 @@ const ChatPage = () => {
         }
 
         // Set up listeners after ensuring conversation exists
-        unsubscribeMessages = getConversation(user.uid, conversationId as string, (messages) => {
-          setMessages(messages);
+        unsubscribeMessages = getConversation(user.uid, conversationId as string, (allFetchedMessages) => {
+          setAllMessagesFromDB(allFetchedMessages); // Store all messages
+          setMessages(allFetchedMessages.slice(-messagesToDisplayCount)); // Display only the current slice
         });
         unsubscribeMetadata = getConversationMetadata(user.uid, conversationId as string, (metadata) => {
           setConversationTitle(metadata.title);
@@ -90,6 +94,11 @@ const ChatPage = () => {
     };
   }, [user, conversationId, router]);
 
+  // New useEffect to handle message slicing for display
+  useEffect(() => {
+    setMessages(allMessagesFromDB.slice(-messagesToDisplayCount));
+  }, [allMessagesFromDB, messagesToDisplayCount]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages]);
@@ -102,6 +111,11 @@ const ChatPage = () => {
   }, [input]); // Recalculate height when input changes
 
 
+  const handleLoadMore = () => {
+    const newCount = Math.min(messagesToDisplayCount + 20, allMessagesFromDB.length);
+    setMessagesToDisplayCount(newCount);
+  };
+
   const handleSendMessage = async () => {
     if (input.trim() === '' || !user || !conversationId) return; // Ensure conversationId is available
 
@@ -112,13 +126,13 @@ const ChatPage = () => {
     setLoading(true);
 
     try {
-      const allMessages = [...messages.slice(-19), newMessage];
+      const allMessagesForAI = [...allMessagesFromDB, newMessage].slice(-50); // Provide AI with up to last 50 messages
       const response = await fetch('/api/nexo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: allMessages, userName: user.displayName || user.email || user.uid, userId: user.uid, conversationId }),
+        body: JSON.stringify({ messages: allMessagesForAI, userName: user.displayName || user.email || user.uid, userId: user.uid, conversationId }),
       });
 
       if (!response.ok) {
@@ -166,7 +180,28 @@ const ChatPage = () => {
         <div
           className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar"
         >
-          {messages.length === 0 ? (
+          {/* Load More Button */}
+          {allMessagesFromDB.length > messagesToDisplayCount && (
+            <div className="flex justify-center pb-4">
+              <ButtonBase
+                onClick={handleLoadMore}
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: '0.8rem',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                }}
+              >
+                Load More
+              </ButtonBase>
+            </div>
+          )}
+
+          {messages.length === 0 && !loading && allMessagesFromDB.length === 0 ? (
             <div className="text-gray-500 text-center py-10">
               Start a conversation with Nexo!
             </div>
@@ -179,9 +214,9 @@ const ChatPage = () => {
             <div className="flex flex-col items-start gap-2 animate-fade-in-up mb-4 w-full">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                  <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
+                  <Image src="/nexo.png" alt="Nexo" width={32} height={32} />
                 </div>
-                <span className="font-bold text-gray-200">Nexo AI</span>
+                <span className="font-bold text-gray-200">Nexo</span>
               </div>
               <div className="w-full text-gray-100">
                 <div className="flex items-center space-x-2">

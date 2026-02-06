@@ -15,7 +15,7 @@ export async function webSearch(query: string) {
       'Content-Type': 'application/json',
       'Accept': 'application/json', // Keep Accept header for good measure
     },
-    body: JSON.stringify({ query, count: 1, summary: true }),
+    body: JSON.stringify({ query, count: 3, summary: true }),
   });
 
   if (!response.ok) {

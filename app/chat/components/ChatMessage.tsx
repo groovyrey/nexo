@@ -211,7 +211,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
             <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
               <Image src="/nexo.png" alt="Nexo AI" width={32} height={32} />
             </div>
-            <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'rgb(229, 231, 235)' }}>Nexo AI</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'rgb(229, 231, 235)' }}>Nexo</Typography>
             {msg.toolUsed && ( // Conditionally render tool used indicator
               <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, p: 0.5, borderRadius: '4px', bgcolor: 'rgba(255,255,255,0.1)' }}>
                 {msg.toolUsed === 'webSearch' && <SearchIcon fontSize="small" sx={{ color: 'cyan.400', mr: 0.5 }} />}
