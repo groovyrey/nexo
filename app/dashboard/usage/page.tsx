@@ -155,15 +155,10 @@ const UsagePage = () => {
               <Typography variant="h6" sx={{ color: 'white' }}>
                 Total Messages
               </Typography>
-              <Chip label={`${messageStats.totalMessages} / ${MAX_TOTAL_MESSAGES}`} color="primary" size="small" />
+              <Chip label={`${messageStats.totalMessages}`} color="primary" size="small" />
             </Box>
-            <LinearProgress
-              variant="determinate"
-              value={(messageStats.totalMessages / MAX_TOTAL_MESSAGES) * 100}
-              sx={{ height: 10, borderRadius: 5, bgcolor: '#555' }}
-            />
             <Typography variant="body2" sx={{ mt: 1, color: 'gray' }}>
-              {`${messageStats.totalMessages} / ${MAX_TOTAL_MESSAGES} messages sent this period.`}
+              {`${messageStats.totalMessages} messages sent this period.`}
             </Typography>
           </CardContent>
         </Card>

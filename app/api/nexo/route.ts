@@ -4,11 +4,18 @@ import { tools } from '../../../lib/tools';
 import { getSystemPrompt } from '../../../lib/systemPrompt'; 
 import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
 
-const hf = new InferenceClient(process.env.HF_TOKEN!);
+const hf_token = process.env.HF_TOKEN;
+
+if (!hf_token) {
+  throw new Error("HF_TOKEN environment variable is not set. Please set it to your Hugging Face API token.");
+}
+
+const hf = new InferenceClient(hf_token);
 
 export async function POST(req: Request) {
   try {
     const { messages, userName, userId, conversationId }: { messages: any[], userName: string, userId: string, conversationId: string } = await req.json();
+
 
     const personalizedSystemPrompt = await getSystemPrompt(userName, userId, conversationId);
 
@@ -29,12 +36,13 @@ export async function POST(req: Request) {
                                                 
                                                                 // 1️⃣ Ask model what to do, passing the tool definitions
                                                                 const modelResponse = await hf.chatCompletion({
-                                                                  model: "Qwen/Qwen2.5-7B-Instruct",
+                                                                  model: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
                                                                   messages: fullConversationForAI, // Pass the full conversation history
                                                                   tools: toolDefinitions, // Pass tool definitions here
                                                                 });
                                     
                                         const message = modelResponse.choices[0].message;
+                                
                                     
                                         // 2️⃣ Check for tool calls
                                         if (message.tool_calls && message.tool_calls.length > 0) {
@@ -65,12 +73,13 @@ export async function POST(req: Request) {
                                           
                                                       // 3️⃣ Send tool result back to model for final answer
                                                       const finalResponse = await hf.chatCompletion({
-                                                        model: "Qwen/Qwen2.5-7B-Instruct",
+                                                        model: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
                                                         messages: [
                                                           ...fullConversationForAI, // Include the full conversation history
+                                                          message, // The model's original message that contained the tool call
                                                           {
                                                             role: "tool", // Use 'tool' role for tool output
-                                                            content: JSON.stringify(toolResult),
+                                                            content: typeof toolResult === 'object' && toolResult !== null && 'summary' in toolResult ? toolResult.summary : JSON.stringify(toolResult),
                                                             tool_call_id: toolCall.id,
                                                           },
                                                         ]
