@@ -17,8 +17,7 @@ import SessionWrapper from './components/SessionWrapper'; // Import the new Sess
 import ThemeRegistry from './components/ThemeRegistry/ThemeRegistry';
 import Navbar from './components/Navbar'; // Import the new Navbar component
 import BreadcrumbsComponent from './components/BreadcrumbsComponent'; // Import the new BreadcrumbsComponent
-import { Breadcrumbs, Link as MuiLink, Typography } from '@mui/material'; // Import MUI components for breadcrumbs
-import { usePathname } from 'next/navigation'; // Import usePathname for dynamic breadcrumbs
+import { Providers } from '@/lib/providers';
 
 export const metadata: Metadata = {
   title: "Nexo - Your AI Chatbot Assistant",
@@ -40,13 +39,15 @@ export default function RootLayout({
       >
         <ThemeRegistry options={{ key: 'mui' }}>
           <AuthProvider>
-            <div className="flex flex-col flex-grow">
-              <Navbar />
-              <BreadcrumbsComponent />
-              <div className="flex-grow min-h-[calc(100vh - 112px)]">
-                <SessionWrapper>{children}</SessionWrapper>
+            <Providers>
+              <div className="flex flex-col flex-grow">
+                <Navbar />
+                <BreadcrumbsComponent />
+                <div className="flex-grow min-h-[calc(100vh - 112px)]">
+                  <SessionWrapper>{children}</SessionWrapper>
+                </div>
               </div>
-            </div>
+            </Providers>
           </AuthProvider>
         </ThemeRegistry>
       </body>

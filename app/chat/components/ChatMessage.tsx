@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { FiUser } from 'react-icons/fi';
 import Image from 'next/image';
 import ButtonBase from '@mui/material/ButtonBase';
@@ -200,8 +203,8 @@ const WeatherDisplay = ({ data }: { data: any }) => {
 const MarkdownRenderer = ({ content }: { content: string }) => (
   <ReactMarkdown
     className="prose prose-invert max-w-none"
-    remarkPlugins={[remarkGfm]}
-    rehypePlugins={[rehypeRaw, rehypeHighlight]}
+    remarkPlugins={[remarkGfm, remarkMath]}
+    rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeKatex]}
     components={{
       a: ({ node, ...props }) => (
         <MuiLink

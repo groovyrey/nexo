@@ -9,6 +9,7 @@ import { formatTimeAgo } from '@/lib/timeUtils';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 
 function TabPanel(props: { children?: React.ReactNode; index: number; value: number }) {
   const { children, value, index, ...other } = props;
@@ -32,34 +33,33 @@ function TabPanel(props: { children?: React.ReactNode; index: number; value: num
 
 const UsagePage = () => {
   const router = useRouter();
-  const { user, loading } = useAuthContext();
+  const { user, loading: authLoading } = useAuthContext();
   const [conversationCount, setConversationCount] = useState<number>(0);
-  const [messageStats, setMessageStats] = useState<MessageStats>({
-    totalMessages: 0,
-    mostMessagesConvo: null,
-    leastMessagesConvo: null,
-    allConversationsStats: [],
-  });
   const [latestConversation, setLatestConversation] = useState<ConversationMetadata | null>(null);
   const [dailyConversationData, setDailyConversationData] = useState<{ date: string; conversations: number }[]>([]);
+
+  const { data: messageStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['messageStats', user?.uid],
+    queryFn: () => getMessageStats(user!.uid),
+    enabled: !!user,
+  });
 
   const MAX_CONVERSATIONS = 5;
   const MAX_CONVOS_FOR_GRAPH = 5;
   const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!authLoading && user) {
       const unsubscribe = getConversationList(user.uid, (conversations) => {
         setConversationCount(conversations.length);
         if (conversations.length > 0) setLatestConversation(conversations[0]);
       });
-      getMessageStats(user.uid).then(setMessageStats);
       return () => unsubscribe();
     }
-  }, [user, loading]);
+  }, [user, authLoading]);
 
   useEffect(() => {
-    if (messageStats.allConversationsStats.length > 0) {
+    if (messageStats?.allConversationsStats && messageStats.allConversationsStats.length > 0) {
       const dailyCounts: { [key: string]: number } = {};
       messageStats.allConversationsStats.forEach(convo => {
         const date = new Date(convo.timestamp).toISOString().split('T')[0];
@@ -68,7 +68,15 @@ const UsagePage = () => {
       const sortedDates = Object.keys(dailyCounts).sort();
       setDailyConversationData(sortedDates.map(date => ({ date, conversations: dailyCounts[date] })));
     }
-  }, [messageStats.allConversationsStats]);
+  }, [messageStats]);
+
+  if (authLoading || statsLoading || !messageStats) {
+      return (
+          <div className="min-h-screen bg-black flex items-center justify-center">
+              <LinearProgress sx={{ width: '200px', borderRadius: 1 }} />
+          </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-6 relative overflow-hidden font-sans antialiased">
