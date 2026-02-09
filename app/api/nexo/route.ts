@@ -18,7 +18,10 @@ export async function POST(req: Request) {
 
     const personalizedSystemPrompt = await getSystemPrompt(userName, userId, conversationId);
     const safeMessages = Array.isArray(messages) ? messages : [];
-    const messagesForAI = safeMessages.map(({ role, content }: { role: string; content: string; timestamp?: number }) => ({ role, content }));
+    const messagesForAI = safeMessages.map(({ role, content }: { role: string; content: string; timestamp?: number }) => ({ 
+      role: role === 'model' ? 'assistant' : role, 
+      content 
+    }));
     const fullConversationForAI = [
       { role: "system", content: personalizedSystemPrompt },
       ...messagesForAI
@@ -36,7 +39,7 @@ export async function POST(req: Request) {
           // 1️⃣ Ask model what to do
           sendEvent('status', 'Nexo is thinking...');
           const modelResponse = await hf.chatCompletion({
-            model: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+            model: "moonshotai/Kimi-K2.5",
             messages: fullConversationForAI,
             tools: toolDefinitions,
           });
@@ -90,7 +93,7 @@ export async function POST(req: Request) {
 
               // 3️⃣ Send tool result back to model for final answer
               const finalResponse = await hf.chatCompletion({
-                model: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+                model: "moonshotai/Kimi-K2.5",
                 messages: [
                   ...fullConversationForAI,
                   message,

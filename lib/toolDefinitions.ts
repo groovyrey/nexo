@@ -61,15 +61,27 @@ export const toolDefinitions = [
     type: "function",
     function: {
       name: "getWeather",
-      description: "Get the current weather. If no location is provided, it uses the user's current location.",
+      description: "Get the current weather for a specific location or the user's current location.",
       parameters: {
         type: "object",
         properties: {
           location: {
             type: "string",
-            description: "Optional: The city name (e.g., 'London', 'Tokyo'). If omitted, the tool uses the user's detected location."
+            description: "The city and country (e.g., 'London, UK'). If the user asks about 'my weather' or doesn't specify a city, leave this blank or use 'auto'."
           }
         },
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "getCurrentTime",
+      description: "Returns the current time in ISO format.",
+      parameters: {
+        type: "object",
+        properties: {},
         required: []
       }
     }
