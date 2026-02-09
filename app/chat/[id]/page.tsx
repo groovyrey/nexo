@@ -5,13 +5,12 @@ import Image from 'next/image';
 import ChatMessage from '../components/ChatMessage';
 import { useAuthContext } from '@/lib/context';
 import { useChatStore, ChatMessageType } from '@/lib/store';
-import { getConversation, writeMessage, getConversationMetadata, createConversation } from '@/lib/realtimedb';
+import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus } from '@/lib/realtimedb';
 import { database } from "@/lib/firebase";
 import { ref, get } from "firebase/database";
 import SendIcon from '@mui/icons-material/Send';
-import MicIcon from '@mui/icons-material/Mic';
-import MicOffIcon from '@mui/icons-material/MicOff';
 import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
@@ -19,7 +18,6 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useSpeechRecognition } from '@/lib/hooks/use-speech-recognition';
 
 const ChatPage = () => {
   const authContext = useAuthContext();
@@ -49,6 +47,8 @@ const ChatPage = () => {
     setInput,
     loading,
     setLoading,
+    toolStatus,
+    setToolStatus,
     isSpeakEnabled,
     setIsSpeakEnabled,
     resetChat
@@ -60,12 +60,37 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastSpokenTimestampRef = useRef<number>(0);
-  const lastProcessedRef = useRef<{ text: string, time: number }>({ text: '', time: 0 });
 
   const speak = (text: string) => {
     if (!isSpeakEnabled || typeof window === 'undefined') return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Clean up text: remove markdown artifacts for smoother reading
+    const cleanText = text
+      .replace(/[*_#`]/g, '')
+      .replace(/\[.*?\]\(.*?\)/g, '')
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    
+    // Get available voices
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Try to find a high-quality "Google" or "Microsoft" or "Natural" voice
+    const preferredVoice = voices.find(v => 
+      (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium')) && 
+      v.lang.startsWith('en')
+    ) || voices.find(v => v.lang.startsWith('en'));
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    // Adjust parameters for a more human-like rhythm
+    utterance.rate = 1.0;  // Slightly slower/standard rate
+    utterance.pitch = 1.0; // Standard pitch
+    utterance.volume = 1.0;
+
     window.speechSynthesis.speak(utterance);
   };
 
@@ -111,6 +136,9 @@ const ChatPage = () => {
         });
         unsubscribeMetadata = getConversationMetadata(user.uid, conversationId as string, (metadata) => {
           setConversationTitle(metadata.title);
+          if (metadata.isSpeakEnabled !== undefined) {
+            setIsSpeakEnabled(metadata.isSpeakEnabled);
+          }
         });
       } catch (error) {
         console.error("Error:", error);
@@ -138,55 +166,9 @@ const ChatPage = () => {
     }
   }, [input]);
 
-  const handleSpeechResult = useCallback((transcript: string, isFinal: boolean) => {
-    if (isFinal) {
-      const newPart = transcript.trim();
-      if (!newPart) return;
-
-      const now = Date.now();
-      const lastProcessed = lastProcessedRef.current;
-      
-      // If we got the exact same text within 800ms, it's likely a duplicate event from the browser
-      if (newPart.toLowerCase() === lastProcessed.text.toLowerCase() && now - lastProcessed.time < 800) {
-        return;
-      }
-      
-      lastProcessedRef.current = { text: newPart, time: now };
-      
-      setInput(prev => {
-        const current = (typeof prev === 'string' ? prev : '').trim();
-        const currentLower = current.toLowerCase();
-        const newPartLower = newPart.toLowerCase();
-
-        // 1. If current is empty, just set it to newPart
-        if (!current) return newPart;
-
-        // 2. Check if newPart is already at the end of the current input (exact or fuzzy match)
-        if (currentLower.endsWith(newPartLower)) {
-           // If it's a very recent duplicate (within 2s), ignore it
-           if (now - lastProcessed.time < 2000) return prev;
-        }
-
-        // 3. Handle accumulated transcript (some mobile browsers return full transcript instead of delta)
-        // If newPart starts with current, it's likely an accumulation
-        if (newPartLower.startsWith(currentLower) && newPartLower.length > currentLower.length) {
-            return newPart;
-        }
-
-        // 4. Otherwise, append with a space
-        return current + ' ' + newPart;
-      });
-    }
-  }, [setInput]);
-
-  const { isListening, startListening, stopListening, hasSupport } = useSpeechRecognition({
-    onResult: handleSpeechResult
-  });
-
   const handleSendMessage = async () => {
     if (typeof input !== 'string' || input.trim() === '' || !user || !conversationId) return;
 
-    if (isListening) stopListening();
     if (typeof window !== 'undefined') window.speechSynthesis.cancel();
 
     const newMessage: ChatMessageType = { role: 'user', content: input.trim(), timestamp: Date.now() };
@@ -210,20 +192,55 @@ const ChatPage = () => {
       
       if (!response.ok) throw new Error('Failed to get response from Nexo');
 
-      const data = await response.json();
-      const botMessage: ChatMessageType = { 
-        role: 'model', 
-        content: data.response, 
-        timestamp: Date.now(), 
-        toolUsed: data.toolUsed || null,
-        toolOutput: data.toolOutput !== undefined ? data.toolOutput : null 
-      }; 
-      writeMessage(user.uid, conversationId as string, botMessage);
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
+
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value);
+        
+        // Process SSE events
+        const lines = chunkValue.split('\n');
+        let currentEvent = '';
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.replace('event: ', '').trim();
+          } else if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            try {
+              const data = JSON.parse(dataStr);
+              
+              if (currentEvent === 'status') {
+                setToolStatus(data);
+              } else if (currentEvent === 'result') {
+                const botMessage: ChatMessageType = { 
+                  role: 'model', 
+                  content: data.response, 
+                  timestamp: Date.now(), 
+                  toolUsed: data.toolUsed || null,
+                  toolOutput: data.toolOutput !== undefined ? data.toolOutput : null 
+                }; 
+                writeMessage(user.uid, conversationId as string, botMessage);
+              } else if (currentEvent === 'error') {
+                toast.error(data);
+              }
+            } catch (e) {
+              console.error('Error parsing SSE data:', e);
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error('API Error:', error);
       toast.error('Failed to get response from Nexo. Please try again.');
     } finally {
       setLoading(false);
+      setToolStatus(null);
     }
   };
 
@@ -244,20 +261,46 @@ const ChatPage = () => {
                 </div>
             </div>
         </div>
-        <div className="flex items-center gap-2">
-            <IconButton 
+        <div className="flex items-center gap-3">
+            <ButtonBase 
                 onClick={() => {
                     const newState = !isSpeakEnabled;
                     setIsSpeakEnabled(newState);
+                    if (user) {
+                        updateConversationSpeakStatus(user.uid, conversationId as string, newState);
+                    }
                     if (!newState && typeof window !== 'undefined') {
                         window.speechSynthesis.cancel();
                     }
                 }} 
-                color="inherit" 
-                sx={{ bgcolor: isSpeakEnabled ? 'rgba(37, 99, 235, 0.2)' : 'white/5', '&:hover': { bgcolor: isSpeakEnabled ? 'rgba(37, 99, 235, 0.3)' : 'white/10' } }}
+                sx={{ 
+                    bgcolor: isSpeakEnabled ? 'rgba(37, 99, 235, 0.15)' : 'white/5',
+                    border: '1px solid',
+                    borderColor: isSpeakEnabled ? 'rgba(59, 130, 246, 0.4)' : 'white/10',
+                    color: isSpeakEnabled ? '#60a5fa' : '#6b7280',
+                    px: 2,
+                    py: 0.75,
+                    borderRadius: '50px',
+                    gap: 1,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': { 
+                        bgcolor: isSpeakEnabled ? 'rgba(37, 99, 235, 0.25)' : 'white/10',
+                        borderColor: isSpeakEnabled ? 'rgba(59, 130, 246, 0.6)' : 'white/20',
+                    }
+                }}
             >
-                {isSpeakEnabled ? <VolumeUpIcon sx={{ color: '#60a5fa' }} /> : <VolumeOffIcon sx={{ color: '#6b7280' }} />}
-            </IconButton>
+                {isSpeakEnabled ? (
+                    <div className="flex items-center gap-1.5">
+                        <VolumeUpIcon sx={{ fontSize: 18 }} />
+                        <span className="text-[10px] font-black uppercase tracking-wider">Voice On</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-1.5 opacity-60">
+                        <VolumeOffIcon sx={{ fontSize: 18 }} />
+                        <span className="text-[10px] font-black uppercase tracking-wider">Voice Off</span>
+                    </div>
+                )}
+            </ButtonBase>
             <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                 <Image src="/nexo.png" alt="Nexo" width={24} height={24} />
             </div>
@@ -309,7 +352,7 @@ const ChatPage = () => {
                 <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20">
                   <Image src="/nexo.png" alt="Nexo" width={20} height={20} className="animate-pulse" />
                 </div>
-                <span className="text-sm font-bold text-blue-400">Nexo is processing...</span>
+                <span className="text-sm font-bold text-blue-400">{toolStatus || "Nexo is processing..."}</span>
               </div>
               <div className="ml-11 flex gap-1">
                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500/40 animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -340,36 +383,28 @@ const ChatPage = () => {
                 disabled={loading}
               ></textarea>
               <div className="flex items-center gap-1 mb-0.5 mr-0.5">
-                {hasSupport && (
-                  <IconButton
-                    onClick={isListening ? stopListening : startListening}
-                    disabled={loading}
-                    sx={{
-                      bgcolor: isListening ? 'rgba(239, 68, 68, 0.2)' : 'white/5',
-                      color: isListening ? '#ef4444' : 'white',
-                      width: 44,
-                      height: 44,
-                      transition: 'all 0.2s',
-                      '&:hover': { bgcolor: isListening ? 'rgba(239, 68, 68, 0.3)' : 'white/10', transform: 'scale(1.05)' },
-                    }}
-                  >
-                    {isListening ? <MicIcon sx={{ fontSize: 20 }} /> : <MicOffIcon sx={{ fontSize: 20, color: '#6b7280' }} />}
-                  </IconButton>
-                )}
                 <IconButton
                   onClick={() => handleSendMessage()}
                   disabled={loading || typeof input !== 'string' || !input.trim()}
                   sx={{
-                    bgcolor: (typeof input === 'string' && input.trim()) ? '#2563eb' : 'white/5',
-                    color: 'white',
+                    bgcolor: 'white/5',
+                    color: (typeof input === 'string' && input.trim()) ? '#2563eb' : 'gray',
                     width: 44,
                     height: 44,
                     transition: 'all 0.2s',
-                    '&:hover': { bgcolor: '#1d4ed8', transform: 'scale(1.05)' },
+                    '&:hover': { 
+                      bgcolor: 'white/10', 
+                      transform: (typeof input === 'string' && input.trim()) ? 'scale(1.05)' : 'none',
+                      color: (typeof input === 'string' && input.trim()) ? '#3b82f6' : 'gray'
+                    },
                     '&.Mui-disabled': { bgcolor: 'white/5', color: 'gray' }
                   }}
                 >
-                  <SendIcon sx={{ fontSize: 20 }} />
+                  {loading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <SendIcon sx={{ fontSize: 20 }} />
+                  )}
                 </IconButton>
               </div>
             </div>

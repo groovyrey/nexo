@@ -363,10 +363,32 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(msg.content);
-    utterance.lang = 'en-US';
+    // Clean up text: remove markdown artifacts for smoother reading
+    const cleanText = msg.content
+      .replace(/[*_#`]/g, '')
+      .replace(/\[.*?\]\(.*?\)/g, '')
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    
+    // Get available voices
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Try to find a high-quality "Google" or "Microsoft" or "Natural" voice
+    const preferredVoice = voices.find(v => 
+      (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium')) && 
+      v.lang.startsWith('en')
+    ) || voices.find(v => v.lang.startsWith('en'));
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
+    
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
     handleClose();

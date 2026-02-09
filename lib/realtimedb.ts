@@ -7,6 +7,7 @@ export interface ConversationMetadata {
   lastMessageSnippet: string;
   timestamp: number;
   firstMessageId?: string; // Optional: ID of the first user message, used to set the conversation title
+  isSpeakEnabled?: boolean;
 }
 
 export const createConversation = async (
@@ -42,6 +43,7 @@ export const createConversation = async (
     lastMessageSnippet: "",
     timestamp: Date.now(),
     firstMessageId: null, // Initialize firstMessageId to null
+    isSpeakEnabled: false,
   });
 
   // Also create an empty 'messages' sub-node to ensure path exists for later messages
@@ -152,6 +154,7 @@ export const getConversationMetadata = (userId: string, conversationId: string, 
         lastMessageSnippet: data.lastMessageSnippet || "",
         timestamp: data.timestamp || 0,
         firstMessageId: data.firstMessageId || null,
+        isSpeakEnabled: data.isSpeakEnabled !== undefined ? data.isSpeakEnabled : false,
       });
     }
   });
@@ -160,6 +163,13 @@ export const updateConversationTitle = async (userId: string, conversationId: st
   const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
   await update(conversationNodeRef, {
     title: newTitle,
+  });
+};
+
+export const updateConversationSpeakStatus = async (userId: string, conversationId: string, isSpeakEnabled: boolean) => {
+  const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
+  await update(conversationNodeRef, {
+    isSpeakEnabled: isSpeakEnabled,
   });
 };
 
