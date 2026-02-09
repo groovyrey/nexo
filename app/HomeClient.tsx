@@ -86,8 +86,8 @@ export default function HomeClient() {
                 <div className="w-16 h-16 mb-8 flex items-center justify-center bg-yellow-500/10 rounded-2xl group-hover:scale-110 transition-transform">
                   <FiUser className="text-yellow-400 text-3xl" />
                 </div>
-                <h4 className="text-2xl font-bold mb-4">Personalized</h4>
-                <p className="text-gray-400 leading-relaxed">A tailored experience that learns from your preferences over time.</p>
+                <h4 className="text-2xl font-bold mb-4">Focused</h4>
+                <p className="text-gray-400 leading-relaxed">Each session is a fresh start, maintaining deep context within your current conversation.</p>
               </div>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function HomeClient() {
             <div className="relative z-10">
               <h3 className="text-4xl md:text-5xl font-black mb-6 text-white">Ready for the Future?</h3>
               <p className="text-blue-100 mb-12 max-w-xl mx-auto text-lg md:text-xl opacity-90">
-                Join thousands of users who are already augmenting their productivity with Nexo AI.
+                Be among the first to experience the future of productivity with Nexo AI.
               </p>
               
               <div className="flex flex-col sm:flex-row justify-center gap-4">
