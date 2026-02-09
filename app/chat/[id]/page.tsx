@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { FiSend } from 'react-icons/fi'; // FiArrowLeft is no longer needed
-import { useRouter, useParams } from 'next/navigation'; // Added useParams
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import ChatMessage from '../components/ChatMessage';
 import { useAuthContext } from '@/lib/context';
@@ -12,27 +11,22 @@ import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ButtonBase from '@mui/material/ButtonBase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatMessageType {
   role: string;
   content: string;
   timestamp: number;
-  toolUsed?: string | null; // Added toolUsed
+  toolUsed?: string | null;
+  toolOutput?: any;
 }
 
 const ChatPage = () => {
   const authContext = useAuthContext();
   const router = useRouter();
-  const { id: conversationId } = useParams(); // Get conversationId from URL params
+  const { id: conversationId } = useParams();
 
-  // If authContext is null, it means the user session is not yet loaded or user is not logged in.
-  // The useEffect below will handle redirection if user is null.
-  // For now, we can return null or a loading state to prevent destructuring 'user' from a null object.
-  if (!authContext) {
-    // console.warn("Auth context is null, waiting for user session or redirection.");
-    return null; // Or return a loading spinner
-  }
-
+  if (!authContext) return null;
   const { user } = authContext;
 
   const [messagesToDisplayCount, setMessagesToDisplayCount] = useState(20);
@@ -49,10 +43,7 @@ const ChatPage = () => {
       router.push('/');
       return;
     }
-
-    if (!user || !conversationId) {
-      return;
-    }
+    if (!user || !conversationId) return;
 
     const conversationNodeRef = ref(database, `conversations/${user.uid}/${conversationId as string}`);
     let unsubscribeMessages: (() => void) | undefined;
@@ -62,211 +53,205 @@ const ChatPage = () => {
       try {
         const snapshot = await get(conversationNodeRef);
         if (!snapshot.exists()) {
-          console.log(`Conversation ${conversationId} does not exist. Creating a new one.`);
           await createConversation(user.uid, "Default", conversationId as string);
         }
-
-        // Set up listeners after ensuring conversation exists
         unsubscribeMessages = getConversation(user.uid, conversationId as string, (allFetchedMessages) => {
-          setAllMessagesFromDB(allFetchedMessages); // Store all messages
-          setMessages(allFetchedMessages.slice(-messagesToDisplayCount)); // Display only the current slice
+          setAllMessagesFromDB(allFetchedMessages);
+          setMessages(allFetchedMessages.slice(-messagesToDisplayCount));
         });
         unsubscribeMetadata = getConversationMetadata(user.uid, conversationId as string, (metadata) => {
           setConversationTitle(metadata.title);
         });
-
       } catch (error) {
-        console.error("Error checking or creating conversation:", error);
-        // Handle error, e.g., redirect to an error page or show a message
-        // For now, we'll log and return, which will leave the page in a loading state or default.
+        console.error("Error:", error);
       }
     };
-
     checkAndCreateConversation();
-
     return () => {
-      if (unsubscribeMessages) {
-        unsubscribeMessages();
-      }
-      if (unsubscribeMetadata) {
-        unsubscribeMetadata();
-      }
+      unsubscribeMessages?.();
+      unsubscribeMetadata?.();
     };
   }, [user, conversationId, router]);
 
-  // New useEffect to handle message slicing for display
   useEffect(() => {
     setMessages(allMessagesFromDB.slice(-messagesToDisplayCount));
   }, [allMessagesFromDB, messagesToDisplayCount]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'; // Reset height
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'; // Set to scrollHeight
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 160) + 'px';
     }
-  }, [input]); // Recalculate height when input changes
-
-
-  const handleLoadMore = () => {
-    const newCount = Math.min(messagesToDisplayCount + 20, allMessagesFromDB.length);
-    setMessagesToDisplayCount(newCount);
-  };
+  }, [input]);
 
   const handleSendMessage = async () => {
-    if (input.trim() === '' || !user || !conversationId) return; // Ensure conversationId is available
+    if (input.trim() === '' || !user || !conversationId) return;
+
+    let locationData = null;
+    try {
+      const locRes = await fetch('https://ipapi.co/json/');
+      if (locRes.ok) locationData = await locRes.json();
+    } catch (e) {
+      console.error("Location error", e);
+    }
 
     const newMessage: ChatMessageType = { role: 'user', content: input, timestamp: Date.now() };
     writeMessage(user.uid, conversationId as string, newMessage);
-    
     setInput('');
     setLoading(true);
 
     try {
-      const allMessagesForAI = [...allMessagesFromDB, newMessage].slice(-50); // Provide AI with up to last 50 messages
       const response = await fetch('/api/nexo', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: allMessagesForAI, userName: user.displayName || user.email || user.uid, userId: user.uid, conversationId }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          messages: [...allMessagesFromDB, newMessage].slice(-50), 
+          userName: user.displayName || user.email || user.uid, 
+          userId: user.uid, 
+          conversationId,
+          userLocation: locationData ? `${locationData.city}, ${locationData.country_name}` : null,
+          userLocale: typeof window !== 'undefined' ? navigator.language : 'en-US'
+        }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Unknown error from Gemini API');
-      }
-
       const data = await response.json();
-      const botMessageContent = data.response;
-      const toolUsedByNexo = data.toolUsed; // <-- Capture toolUsed here
-      
-      const botMessage: ChatMessageType = { role: 'model', content: botMessageContent, timestamp: Date.now(), toolUsed: toolUsedByNexo }; // <-- Add toolUsed to botMessage
+      const botMessage: ChatMessageType = { 
+        role: 'model', 
+        content: data.response, 
+        timestamp: Date.now(), 
+        toolUsed: data.toolUsed || null,
+        toolOutput: data.toolOutput !== undefined ? data.toolOutput : null 
+      }; 
       writeMessage(user.uid, conversationId as string, botMessage);
-
-    } catch (error: unknown) {
-      console.error('API call error:', error);
-      let errorMessage = 'Error: Could not get a response from Nexo. Please check your network or try again later.';
-      if (error instanceof Error) {
-        errorMessage = `Error: ${error.message}`;
-      }
-      const systemMessage: ChatMessageType = { role: 'system', content: errorMessage, timestamp: Date.now() };
-      writeMessage(user.uid, conversationId as string, systemMessage);
-
+    } catch (error) {
+      console.error('API Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
+    <div className="flex flex-col h-screen bg-black text-white font-sans antialiased relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-blue-600/5 blur-[120px] pointer-events-none"></div>
+
       {/* Header */}
-      <header className="sticky top-0 z-50 py-3 px-4 bg-white/10 backdrop-blur-md flex items-center justify-between border-b border-white/20">
-        <IconButton onClick={() => router.push('/chat')} color="inherit" aria-label="back" sx={{ color: 'white', '&:hover': { bgcolor: 'white/20' } }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <div className="flex items-center space-x-3">
-          <h1 className="text-lg font-semibold text-white">{conversationTitle}</h1>
+      <header className="sticky top-0 z-50 py-4 px-6 bg-white/5 backdrop-blur-xl flex items-center justify-between border-b border-white/10">
+        <div className="flex items-center gap-4">
+            <IconButton onClick={() => router.push('/chat')} color="inherit" sx={{ bgcolor: 'white/5', '&:hover': { bgcolor: 'white/10' } }}>
+                <ArrowBackIcon />
+            </IconButton>
+            <div className="flex flex-col">
+                <h1 className="text-lg font-bold leading-tight">{conversationTitle}</h1>
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Nexo Online</span>
+                </div>
+            </div>
         </div>
-        <div className="w-10 h-10"></div>
+        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+             <Image src="/nexo.png" alt="Nexo" width={24} height={24} />
+        </div>
       </header>
 
       {/* Chat Interface */}
-      <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
-        {/* Messages Display */}
-        <div
-          className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar"
-        >
-          {/* Load More Button */}
+      <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative z-10">
+        <div className="flex-grow p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col space-y-6">
           {allMessagesFromDB.length > messagesToDisplayCount && (
-            <div className="flex justify-center pb-4">
+            <div className="flex justify-center py-2">
               <ButtonBase
-                onClick={handleLoadMore}
+                onClick={() => setMessagesToDisplayCount(prev => prev + 20)}
                 sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  fontSize: '0.8rem',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  },
+                  bgcolor: 'white/5',
+                  color: 'gray',
+                  px: 3,
+                  py: 1,
+                  borderRadius: '50px',
+                  fontSize: '0.75rem',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': { bgcolor: 'white/10', color: 'white' }
                 }}
               >
-                Load More
+                Load previous messages
               </ButtonBase>
             </div>
           )}
 
-          {messages.length === 0 && !loading && allMessagesFromDB.length === 0 ? (
-            <div className="text-gray-500 text-center py-10">
-              Start a conversation with Nexo!
-            </div>
-          ) : (
-            messages.map((msg, index) => (
-              <ChatMessage key={index} msg={msg} isUser={msg.role === 'user'} user={user} />
-            ))
-          )}
+          <AnimatePresence>
+            {messages.map((msg, index) => (
+                <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <ChatMessage msg={msg} isUser={msg.role === 'user'} user={user} />
+                </motion.div>
+            ))}
+          </AnimatePresence>
+
           {loading && (
-            <div className="flex flex-col items-start gap-2 animate-fade-in-up mb-4 w-full">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                  <Image src="/nexo.png" alt="Nexo" width={32} height={32} />
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-start gap-3 mb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/20">
+                  <Image src="/nexo.png" alt="Nexo" width={20} height={20} className="animate-pulse" />
                 </div>
-                <span className="font-bold text-gray-200">Nexo</span>
+                <span className="text-sm font-bold text-blue-400">Nexo is processing...</span>
               </div>
-              <div className="w-full text-gray-100">
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-cyan-400"></div>
-                  <span className="text-gray-300">Nexo is thinking...</span>
-                </div>
+              <div className="ml-11 flex gap-1">
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500/40 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500/40 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500/40 animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
-            </div>
+            </motion.div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
-        <div className="p-4 bg-white/10 backdrop-blur-md border-t border-white/20">
-          <div className="flex items-center gap-2">
+        <div className="p-4 md:p-6 bg-gradient-to-t from-black via-black to-transparent">
+          <div className="relative flex items-end gap-3 max-w-3xl mx-auto bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] p-2 transition-all focus-within:border-blue-500/50 focus-within:bg-white/[0.08] shadow-2xl">
             <textarea
               ref={textareaRef}
               rows={1}
-              className="w-full p-3 pl-4 rounded-lg bg-white/20 border border-transparent text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-gray-400 transition-all duration-200 resize-none min-h-[50px] max-h-[160px] overflow-y-auto"
-              placeholder="Message Nexo..."
+              className="w-full p-3 pl-4 bg-transparent text-white focus:outline-none placeholder-gray-500 resize-none min-h-[48px] max-h-[160px] text-sm md:text-base"
+              placeholder="Ask Nexo anything..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onInput={(e) => {
-                e.currentTarget.style.height = 'auto';
-                e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
               }}
               disabled={loading}
             ></textarea>
             <IconButton
-              color="primary"
-              aria-label="send message"
               onClick={handleSendMessage}
-              disabled={loading}
+              disabled={loading || !input.trim()}
               sx={{
-                bgcolor: 'primary.main',
+                bgcolor: input.trim() ? 'blue.600' : 'white/5',
                 color: 'white',
-                width: 48,
-                height: 48,
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                },
-                '&.Mui-disabled': {
-                    bgcolor: 'action.disabledBackground',
-                    color: 'action.disabled',
-                }
+                width: 44,
+                height: 44,
+                mb: 0.5,
+                mr: 0.5,
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'blue.700', transform: 'scale(1.05)' },
+                '&.Mui-disabled': { bgcolor: 'white/5', color: 'gray' }
               }}
             >
-              <SendIcon />
+              <SendIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </div>
+          <p className="text-center text-[10px] text-gray-600 mt-4 uppercase tracking-[0.2em] font-bold">Powered by Nexo Intelligence • Academic Project</p>
         </div>
       </div>
     </div>

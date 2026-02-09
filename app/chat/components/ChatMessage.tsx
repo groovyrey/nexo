@@ -28,6 +28,13 @@ import BuildIcon from '@mui/icons-material/Build'; // New import
 import SearchIcon from '@mui/icons-material/Search'; // New import for webSearch
 import MemoryIcon from '@mui/icons-material/Memory'; // New import for retrieve/writeMemory
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'; // New import for listTools
+import CloudIcon from '@mui/icons-material/Cloud'; // New import for getWeather
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import LanguageIcon from '@mui/icons-material/Language';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
+import OpacityIcon from '@mui/icons-material/Opacity';
+import AirIcon from '@mui/icons-material/Air';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
 
 import { User } from '@/lib/context'; // Import User interface
 
@@ -38,10 +45,157 @@ interface ChatMessageProps {
     content: string;
     timestamp?: number;
     toolUsed?: string | null; // Added toolUsed
+    toolOutput?: any; // Added toolOutput
   };
   isUser: boolean;
   user: User | null;
 }
+
+const FetchUrlDisplay = ({ data }: { data: any }) => {
+  if (!data || data.error) return null;
+
+  let info = data;
+  if (typeof data === 'string') {
+    try {
+      info = JSON.parse(data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  if (info.error) return null;
+
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        p: 2,
+        my: 2,
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '16px',
+        color: 'white',
+        width: '100%',
+        maxWidth: '500px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        cursor: 'pointer',
+        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+      }}
+      onClick={() => window.open(info.url, '_blank')}
+    >
+      <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', p: 1.5, borderRadius: '12px' }}>
+        <LanguageIcon sx={{ fontSize: 32, color: 'emerald.400' }} />
+      </Box>
+      <Box sx={{ overflow: 'hidden' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {info.title}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'grey.400', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {info.url}
+        </Typography>
+      </Box>
+    </Paper>
+  );
+};
+
+const DateDisplay = ({ date }: { date: string }) => {
+  if (!date) return null;
+
+  // Expected format: "Monday, February 9, 2026" or similar from Intl
+  const parts = date.split(', ');
+  const weekday = parts[0];
+  const fullDate = parts.slice(1).join(', ');
+
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        p: 2,
+        my: 2,
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '16px',
+        color: 'white',
+        width: '100%',
+        maxWidth: '400px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+      }}
+    >
+      <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', p: 1.5, borderRadius: '12px' }}>
+        <CalendarMonthIcon sx={{ fontSize: 40, color: 'pink' }} />
+      </Box>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>{weekday}</Typography>
+        <Typography variant="body1" sx={{ color: 'grey.300' }}>{fullDate}</Typography>
+      </Box>
+    </Paper>
+  );
+};
+
+const WeatherDisplay = ({ data }: { data: any }) => {
+  if (!data || data.error) return null;
+
+  // Sometimes toolOutput is a stringified JSON
+  let weather = data;
+  if (typeof data === 'string') {
+    try {
+      weather = JSON.parse(data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  if (weather.error) return null;
+
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        p: 2,
+        my: 2,
+        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '16px',
+        color: 'white',
+        width: '100%',
+        maxWidth: '400px',
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{weather.location}</Typography>
+          <Typography variant="body2" sx={{ color: 'cyan.200' }}>{weather.condition}</Typography>
+        </Box>
+        <CloudIcon sx={{ fontSize: 48, color: 'cyan.300' }} />
+      </Box>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <ThermostatIcon sx={{ color: 'orange' }} />
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>{weather.tempC}°C</Typography>
+          <Typography variant="caption">Temp</Typography>
+        </Box>
+        <Box sx={{ textAlign: 'center' }}>
+          <OpacityIcon sx={{ color: 'lightskyblue' }} />
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>{weather.humidity}%</Typography>
+          <Typography variant="caption">Humidity</Typography>
+        </Box>
+        <Box sx={{ textAlign: 'center' }}>
+          <AirIcon sx={{ color: 'lightgrey' }} />
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>{weather.windSpeed}</Typography>
+          <Typography variant="caption">km/h</Typography>
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
 
 const MarkdownRenderer = ({ content }: { content: string }) => (
   <ReactMarkdown
@@ -217,7 +371,8 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
                 {msg.toolUsed === 'webSearch' && <SearchIcon fontSize="small" sx={{ color: 'cyan.400', mr: 0.5 }} />}
                 {(msg.toolUsed === 'writeMemory' || msg.toolUsed === 'retrieveMemory') && <MemoryIcon fontSize="small" sx={{ color: 'purple.400', mr: 0.5 }} />}
                 {msg.toolUsed === 'listTools' && <FormatListBulletedIcon fontSize="small" sx={{ color: 'green.400', mr: 0.5 }} />}
-                {!(msg.toolUsed === 'webSearch' || msg.toolUsed === 'writeMemory' || msg.toolUsed === 'retrieveMemory' || msg.toolUsed === 'listTools') && <BuildIcon fontSize="small" sx={{ color: 'grey.400', mr: 0.5 }} />}
+                {msg.toolUsed === 'getWeather' && <CloudIcon fontSize="small" sx={{ color: 'lightblue.400', mr: 0.5 }} />}
+                {!(msg.toolUsed === 'webSearch' || msg.toolUsed === 'writeMemory' || msg.toolUsed === 'retrieveMemory' || msg.toolUsed === 'listTools' || msg.toolUsed === 'getWeather') && <BuildIcon fontSize="small" sx={{ color: 'grey.400', mr: 0.5 }} />}
                 <Typography variant="caption" sx={{ color: 'grey.300', fontSize: '0.7rem' }}>
                   {msg.toolUsed}
                 </Typography>
@@ -240,6 +395,15 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
           }}
         >
           <div className="w-full text-gray-100 p-3">
+            {msg.toolUsed === 'getWeather' && msg.toolOutput && (
+              <WeatherDisplay data={msg.toolOutput} />
+            )}
+            {msg.toolUsed === 'getCurrentDate' && msg.toolOutput && (
+              <DateDisplay date={msg.toolOutput} />
+            )}
+            {msg.toolUsed === 'fetchUrl' && msg.toolOutput && (
+              <FetchUrlDisplay data={msg.toolOutput} />
+            )}
             <MarkdownRenderer content={msg.content} />
             {msg.timestamp && (
               <Typography variant="caption" sx={{ fontSize: '0.75rem', marginTop: '8px', textAlign: 'left', color: 'rgb(156, 163, 175)' }}>

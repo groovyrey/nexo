@@ -16,15 +16,16 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete'; // New import
-import MoreVertIcon from '@mui/icons-material/MoreVert'; // New import
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import EditIcon from '@mui/icons-material/Edit'; // New import for Edit icon
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import for the back button
-import { Fab, Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
-import { useNotification } from "@/lib/notification"; // Import useNotification
+import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Paper } from '@mui/material';
+import { useNotification } from "@/lib/notification";
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ConversationsPage = () => {
   const authContext = useAuthContext();
@@ -34,8 +35,6 @@ const ConversationsPage = () => {
   const { showNotification } = useNotification();
   const [defaultConversationCreated, setDefaultConversationCreated] = useState(false);
 
-  // If authContext is null, it means the user session is not yet loaded or user is not logged in.
-  // The useEffect below will handle redirection if user is null.
   if (!authContext) {
     return (
       <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
@@ -50,16 +49,13 @@ const ConversationsPage = () => {
 
   const { user } = authContext;
 
-
   const [openRenameDialog, setOpenRenameDialog] = useState(false);
   const [renameConversationId, setRenameConversationId] = useState('');
   const [renameConversationTitle, setRenameConversationTitle] = useState('');
-
-  const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false); // New state for delete confirmation dialog
-  const [deleteConversationId, setDeleteConversationId] = useState(''); // New state to hold ID of convo to delete
-
+  const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
+  const [deleteConversationId, setDeleteConversationId] = useState('');
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null); // To track which conversation's menu is open
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, conversationId: string) => {
     setAnchorEl(event.currentTarget);
@@ -71,18 +67,12 @@ const ConversationsPage = () => {
     setOpenMenuId(null);
   };
 
-
-
-
   const handleCreateNewConversation = useCallback(async (idToCreate?: string, shouldRedirect: boolean = true) => {
     if (!user) return;
-
-    // Check for conversation limit
-    if (conversations.length >= 5 && idToCreate !== "default") { // Allow "default" to be created if list is empty
+    if (conversations.length >= 5 && idToCreate !== "default") {
       showNotification("You have reached the maximum limit of 5 conversations.", "warning");
       return;
     }
-
     try {
       const newConversationId = await createConversation(user.uid, idToCreate === "default" ? "Default Chat" : "New Chat", idToCreate);
       if (shouldRedirect) {
@@ -91,10 +81,10 @@ const ConversationsPage = () => {
     } catch (error) {
       console.error("Error creating new conversation:", error);
     }
-  }, [user, router, conversations]); // Added 'conversations' to dependency array
+  }, [user, router, conversations]);
 
   const handleOpenRenameDialog = useCallback((convoId: string, currentTitle: string) => {
-    handleMenuClose(); // Close the MoreVert menu
+    handleMenuClose();
     setRenameConversationId(convoId);
     setRenameConversationTitle(currentTitle);
     setOpenRenameDialog(true);
@@ -107,21 +97,17 @@ const ConversationsPage = () => {
   }, []);
 
   const handleRenameConversation = useCallback(async () => {
-    if (!user || !renameConversationId || !renameConversationTitle.trim()) {
-      alert("Conversation ID or new title is missing.");
-      return;
-    }
+    if (!user || !renameConversationId || !renameConversationTitle.trim()) return;
     try {
       await updateConversationTitle(user.uid, renameConversationId, renameConversationTitle.trim());
       handleCloseRenameDialog();
     } catch (error) {
       console.error("Error renaming conversation:", error);
-      alert("Failed to rename conversation.");
     }
   }, [user, renameConversationId, renameConversationTitle, handleCloseRenameDialog]);
 
   const handleOpenDeleteConfirmDialog = useCallback((convoId: string) => {
-    handleMenuClose(); // Close the MoreVert menu
+    handleMenuClose();
     setDeleteConversationId(convoId);
     setOpenDeleteConfirmDialog(true);
   }, []);
@@ -132,12 +118,9 @@ const ConversationsPage = () => {
   }, []);
 
   const handleConfirmDeleteConversation = useCallback(async () => {
-    if (!user || !deleteConversationId) {
-      alert("Conversation ID is missing for deletion.");
-      return;
-    }
+    if (!user || !deleteConversationId) return;
     if (deleteConversationId === "default") {
-        alert("The default conversation cannot be deleted.");
+        showNotification("The default conversation cannot be deleted.", "error");
         handleCloseDeleteConfirmDialog();
         return;
     }
@@ -146,20 +129,11 @@ const ConversationsPage = () => {
       handleCloseDeleteConfirmDialog();
     } catch (error) {
       console.error("Error deleting conversation:", error);
-      alert("Failed to delete conversation.");
     }
   }, [user, deleteConversationId, handleCloseDeleteConfirmDialog]);
 
-  const handleDeleteConversation = useCallback((convoId: string) => {
-    if (!user) return;
-    // Removed the "default" convo check here, moved to handleConfirmDeleteConversation
-    handleOpenDeleteConfirmDialog(convoId);
-  }, [user, handleOpenDeleteConfirmDialog]); // Depend on user and the new handler
-
   useEffect(() => {
-    if (user === null) {
-      router.push('/');
-    }
+    if (user === null) router.push('/');
   }, [user, router]);
 
   useEffect(() => {
@@ -168,24 +142,16 @@ const ConversationsPage = () => {
       unsubscribe = getConversationList(user.uid, (convos) => {
         setConversations(convos);
         setLoading(false);
-        // If no conversations exist, create a default one with fixed ID "default" and redirect
         if (convos.length === 0 && !defaultConversationCreated) {
-          handleCreateNewConversation("default", true); // Create default and redirect
-          setDefaultConversationCreated(true); // Mark as created to prevent re-triggering
+          handleCreateNewConversation("default", true);
+          setDefaultConversationCreated(true);
         } else if (convos.length > 0 && !convos.some(convo => convo.id === "default")) {
-            // If conversations exist but "default" is missing, create it without immediate redirection
             handleCreateNewConversation("default", false);
         }
       });
     }
-    return () => {
-      if (unsubscribe) {
-        unsubscribe(); // Cleanup the listener
-      }
-    };
-  }, [user, handleCreateNewConversation, defaultConversationCreated, router]); // Added defaultConversationCreated and router to dependency array
-
-
+    return () => unsubscribe?.();
+  }, [user, handleCreateNewConversation, defaultConversationCreated]);
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -195,209 +161,206 @@ const ConversationsPage = () => {
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
     return 'just now';
   };
 
-
-  if (!user || loading) {
-    return (
-      <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
-        <header className="sticky top-0 z-50 py-3 px-4 bg-white/10 backdrop-blur-md flex items-center justify-between border-b border-white/20">
-          <IconButton onClick={() => router.push('/')} color="inherit" aria-label="back to home" sx={{ color: 'white', '&:hover': { bgcolor: 'white/20' } }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <h1 className="text-lg font-semibold text-white">Your Conversations</h1>
-          <IconButton color="primary" onClick={() => handleCreateNewConversation(undefined, true)} aria-label="new conversation">
-              <AddIcon sx={{ color: 'white' }} />
-          </IconButton>
-        </header>
-        <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
-          <List className="flex-grow overflow-y-auto custom-scrollbar">
-            {[...Array(4)].map((_, i) => <ConversationSkeleton key={i} />)}
-          </List>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-screen bg-black text-white font-sans antialiased">
-      <header className="sticky top-0 z-50 py-3 px-4 bg-white/10 backdrop-blur-md flex items-center justify-between border-b border-white/20">
-        <IconButton onClick={() => router.push('/')} color="inherit" aria-label="back to home" sx={{ color: 'white', '&:hover': { bgcolor: 'white/20' } }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <h1 className="text-lg font-semibold text-white">Your Conversations</h1>
-        <IconButton color="primary" onClick={() => handleCreateNewConversation(undefined, true)} aria-label="new conversation">
-            <AddIcon sx={{ color: 'white' }} />
-        </IconButton>
+    <div className="flex flex-col h-screen bg-black text-white font-sans antialiased overflow-hidden relative">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <header className="sticky top-0 z-50 py-4 px-6 bg-white/5 backdrop-blur-xl flex items-center justify-between border-b border-white/10">
+        <div className="flex items-center gap-4">
+            <IconButton onClick={() => router.push('/')} color="inherit" sx={{ bgcolor: 'white/5', '&:hover': { bgcolor: 'white/10' } }}>
+                <ArrowBackIcon />
+            </IconButton>
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Your Chats</h1>
+        </div>
+        <Button 
+            variant="contained" 
+            onClick={() => handleCreateNewConversation(undefined, true)}
+            startIcon={<AddIcon />}
+            sx={{ 
+                bgcolor: 'blue.600', 
+                borderRadius: '50px',
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 3,
+                boxShadow: '0 4px 14px 0 rgba(0,118,255,0.39)',
+                '&:hover': { bgcolor: 'blue.700', boxShadow: '0 6px 20px rgba(0,118,255,0.23)' }
+            }}
+        >
+            New Chat
+        </Button>
       </header>
 
-      <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden">
-        {conversations.length === 0 ? (
-          <Box className="flex-grow flex items-center justify-center text-gray-500 text-center p-4">
-            <Typography variant="h6" color="inherit">
-                No conversations yet. Start a new one!
-            </Typography>
+      <div className="flex-grow flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative z-10 px-4 py-6">
+        {loading ? (
+             <List className="space-y-4">
+                {[...Array(4)].map((_, i) => <ConversationSkeleton key={i} />)}
+             </List>
+        ) : conversations.length === 0 ? (
+          <Box className="flex-grow flex flex-col items-center justify-center text-gray-500 text-center">
+            <div className="w-20 h-20 mb-4 bg-white/5 rounded-full flex items-center justify-center">
+                <AddIcon sx={{ fontSize: 40 }} />
+            </div>
+            <Typography variant="h6">No conversations yet.</Typography>
+            <Typography variant="body2">Start a new one to begin chatting with Nexo!</Typography>
           </Box>
         ) : (
-          <List className="flex-grow overflow-y-auto custom-scrollbar">
-            {conversations.map((convo) => (
-              <ListItem
-                key={convo.id}
-                disablePadding
-                secondaryAction={
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="caption" color="lightgray" sx={{ mr: 1 }}>
-                      {formatTimestamp(convo.timestamp)}
-                    </Typography>
-                    <IconButton
-                      edge="end"
-                      aria-label="more"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent Link from triggering
-                        handleMenuClick(e, convo.id);
-                      }}
-                      sx={{ color: 'lightgray', '&:hover': { color: 'white' } }} // Apply hover here
+          <List className="space-y-3 overflow-y-auto custom-scrollbar pr-2">
+            <AnimatePresence>
+                {conversations.map((convo) => (
+                    <motion.div
+                        key={convo.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                     >
-                      <MoreVertIcon />
-                    </IconButton>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={openMenuId === convo.id}
-                      onClose={handleMenuClose}
-                      MenuListProps={{
-                        'aria-labelledby': 'more-button',
-                      }}
-                       PaperProps={{
-                        sx: {
-                          bgcolor: 'rgba(30, 30, 30, 0.9)',
-                          color: 'white',
-                        }
-                      }}
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                    >
-                      <MenuItem
-                        onClick={() => handleOpenRenameDialog(convo.id, convo.title)}
-                        sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
-                        disabled={convo.id === "default"} // Disable if default conversation
-                      >
-                        <ListItemIcon>
-                          <EditIcon fontSize="small" sx={{ color: 'white' }} />
-                        </ListItemIcon>
-                        Rename
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          handleDeleteConversation(convo.id);
-                          handleMenuClose();
-                        }}
-                        sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
-                        disabled={convo.id === "default"} // Disable if default conversation
-                      >
-                        <ListItemIcon>
-                          <DeleteIcon fontSize="small" sx={{ color: 'white' }} />
-                        </ListItemIcon>
-                        Delete
-                      </MenuItem>
-                    </Menu>
-                  </div>
-                }
-                sx={{
-                    borderRadius: '0',
-                    bgcolor: 'rgba(33, 33, 33, 0.8)', // Darker grey with transparency
-                    '&:hover': {
-                        bgcolor: 'rgba(50, 50, 50, 0.9)', // Slightly lighter dark grey for hover
-                    },
-                    borderBottom: '1px solid rgba(68, 68, 68, 0.7)', // Darker, more subtle border
-                    pl: 2, // Add left padding to the ListItem
-                }}
-              >
-                <Link href={`/chat/${convo.id}`} passHref style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexGrow: 1, minWidth: 0 }}>
-                  <ListItemAvatar>
-                    <Avatar sx={{
-                        bgcolor: 'rgba(6, 182, 212, 0.7)', // Slightly darker cyan
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '1.2rem',
-                    }}>
-                      {convo.title ? convo.title.charAt(0).toUpperCase() : '?'} {/* Use first letter of title */}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={<Typography variant="body1" color="white" noWrap>{convo.title}</Typography>}
-                    secondary={
-                      <Typography
-                        variant="body2"
-                        color="lightgray"
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          display: 'block', // Required for text-overflow to work
-                          maxWidth: '50%', // Explicitly constrain the width of the snippet text
-                        }}
-                      >
-                        {convo.lastMessageSnippet || "No messages yet."}
-                      </Typography>
-                    }
-                    sx={{ color: 'white', ml: 2, flexShrink: 1, minWidth: 0 }}
-                  />
-                </Link>
-              </ListItem>
-            ))}
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                bgcolor: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '20px',
+                                overflow: 'hidden',
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                    bgcolor: 'rgba(255, 255, 255, 0.06)',
+                                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                                    transform: 'translateY(-2px)'
+                                }
+                            }}
+                        >
+                            <ListItem
+                                disablePadding
+                                secondaryAction={
+                                    <div className="flex items-center gap-2">
+                                        <Typography variant="caption" sx={{ color: 'gray' }}>
+                                            {formatTimestamp(convo.timestamp)}
+                                        </Typography>
+                                        <IconButton
+                                            onClick={(e) => handleMenuClick(e, convo.id)}
+                                            sx={{ color: 'gray', '&:hover': { color: 'white' } }}
+                                        >
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                    </div>
+                                }
+                            >
+                                <Link href={`/chat/${convo.id}`} className="flex items-center p-4 w-full group">
+                                    <ListItemAvatar>
+                                        <Avatar sx={{
+                                            bgcolor: 'blue.600',
+                                            fontWeight: 'bold',
+                                            width: 50,
+                                            height: 50,
+                                            fontSize: '1.2rem',
+                                            boxShadow: '0 0 20px rgba(37, 99, 235, 0.2)'
+                                        }}>
+                                            {convo.title ? convo.title.charAt(0).toUpperCase() : '?'}
+                                        </Avatar>
+                                    </ListItemAvatar>
+                                    <ListItemText
+                                        primary={
+                                            <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'white' }}>
+                                                {convo.title}
+                                            </Typography>
+                                        }
+                                        secondary={
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    color: 'gray',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                    maxWidth: '200px'
+                                                }}
+                                            >
+                                                {convo.lastMessageSnippet || "No messages yet."}
+                                            </Typography>
+                                        }
+                                        sx={{ ml: 2 }}
+                                    />
+                                </Link>
+                            </ListItem>
+                        </Paper>
+                    </motion.div>
+                ))}
+            </AnimatePresence>
           </List>
         )}
-
       </div>
-        <Dialog open={openRenameDialog} onClose={handleCloseRenameDialog} PaperProps={{ sx: { bgcolor: 'rgba(30, 30, 30, 0.9)', color: 'white' } }}>
-            <DialogTitle sx={{ color: 'white' }}>Rename Conversation</DialogTitle>
+
+      {/* Menus and Dialogs */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+            sx: {
+                bgcolor: '#121212',
+                color: 'white',
+                borderRadius: '16px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                mt: 1,
+                minWidth: 150
+            }
+        }}
+      >
+        <MenuItem onClick={() => handleOpenRenameDialog(openMenuId!, conversations.find(c => c.id === openMenuId)?.title || '')}>
+            <ListItemIcon><EditIcon fontSize="small" sx={{ color: 'white' }} /></ListItemIcon>
+            Rename
+        </MenuItem>
+        <MenuItem 
+            onClick={() => handleOpenDeleteConfirmDialog(openMenuId!)}
+            sx={{ color: 'error.main' }}
+        >
+            <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+            Delete
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={openRenameDialog} onClose={handleCloseRenameDialog} PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1 } }}>
+            <DialogTitle sx={{ fontWeight: 'bold' }}>Rename Chat</DialogTitle>
             <DialogContent>
                 <TextField
                     autoFocus
                     margin="dense"
-                    id="name"
-                    label="New Conversation Title"
-                    type="text"
+                    label="New Title"
                     fullWidth
-                    variant="standard"
+                    variant="outlined"
                     value={renameConversationTitle}
                     onChange={(e) => setRenameConversationTitle(e.target.value)}
                     sx={{
-                        '& .MuiInputBase-input': { color: 'white' }, // Text color
-                        '& .MuiInputLabel-root': { color: 'gray' }, // Label color
-                        '& .MuiInput-underline:before': { borderBottomColor: 'gray' }, // Underline color
-                        '& .MuiInput-underline:after': { borderBottomColor: 'cyan' }, // Focused underline color
+                        '& .MuiOutlinedInput-root': {
+                            color: 'white',
+                            '& fieldset': { borderColor: 'rgba(255,255,255,0.2)', borderRadius: '12px' },
+                            '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
+                        },
+                        '& .MuiInputLabel-root': { color: 'gray' }
                     }}
                 />
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ p: 3 }}>
                 <Button onClick={handleCloseRenameDialog} sx={{ color: 'white' }}>Cancel</Button>
-                <Button onClick={handleRenameConversation} sx={{ color: 'cyan' }}>Rename</Button>
+                <Button onClick={handleRenameConversation} variant="contained" sx={{ bgcolor: 'blue.600', borderRadius: '50px' }}>Save Changes</Button>
             </DialogActions>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} PaperProps={{ sx: { bgcolor: 'rgba(30, 30, 30, 0.9)', color: 'white' } }}>
-            <DialogTitle sx={{ color: 'white' }}>Confirm Delete</DialogTitle>
+        <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1 } }}>
+            <DialogTitle sx={{ fontWeight: 'bold' }}>Delete Chat?</DialogTitle>
             <DialogContent>
-                <Typography sx={{ color: 'white' }}>
-                    Are you sure you want to delete this conversation? This action cannot be undone.
-                </Typography>
+                <Typography sx={{ color: 'gray' }}>This will permanently remove this conversation. This action cannot be undone.</Typography>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ p: 3 }}>
                 <Button onClick={handleCloseDeleteConfirmDialog} sx={{ color: 'white' }}>Cancel</Button>
-                <Button onClick={handleConfirmDeleteConversation} sx={{ color: 'red' }}>Delete</Button>
+                <Button onClick={handleConfirmDeleteConversation} variant="contained" color="error" sx={{ borderRadius: '50px' }}>Delete Permanently</Button>
             </DialogActions>
         </Dialog>
     </div>

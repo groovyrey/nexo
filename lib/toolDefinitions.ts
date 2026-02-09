@@ -56,6 +56,52 @@ export const toolDefinitions = [
         required: []
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "getWeather",
+      description: "Get the current weather. If no location is provided, it uses the user's current location.",
+      parameters: {
+        type: "object",
+        properties: {
+          location: {
+            type: "string",
+            description: "Optional: The city name (e.g., 'London', 'Tokyo'). If omitted, the tool uses the user's detected location."
+          }
+        },
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "getCurrentDate",
+      description: "Returns the current date in a human-readable format (e.g., Monday, February 9, 2026).",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "fetchUrl",
+      description: "Fetches the text content of a given URL. Use this to read the contents of a specific webpage when provided with a link.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: {
+            type: "string",
+            description: "The full URL to fetch (including http:// or https://)."
+          }
+        },
+        required: ["url"]
+      }
+    }
   }
 ];
 

@@ -14,7 +14,7 @@ const hf = new InferenceClient(hf_token);
 
 export async function POST(req: Request) {
   try {
-    const { messages, userName, userId, conversationId }: { messages: any[], userName: string, userId: string, conversationId: string } = await req.json();
+    const { messages, userName, userId, conversationId, userLocation, userLocale }: { messages: any[], userName: string, userId: string, conversationId: string, userLocation?: string, userLocale?: string } = await req.json();
 
 
     const personalizedSystemPrompt = await getSystemPrompt(userName, userId, conversationId);
@@ -60,12 +60,19 @@ export async function POST(req: Request) {
                                                         toolResult = await (toolFunction as typeof tools.webSearch)(functionArgs.query);
                                                       } else if (functionName === 'getCurrentTime') {
                                                         toolResult = await (toolFunction as typeof tools.getCurrentTime)();
+                                                      } else if (functionName === 'getCurrentDate') {
+                                                        toolResult = (toolFunction as typeof tools.getCurrentDate)(userLocale || 'en-US');
+                                                      } else if (functionName === 'fetchUrl') {
+                                                        toolResult = await (toolFunction as typeof tools.fetchUrl)(functionArgs.url);
                                                       } else if (functionName === 'writeMemory') { // Handle writeMemory
                                                         toolResult = await tools.writeMemory(userId, conversationId, (functionArgs as { content: string }).content);
                                                       } else if (functionName === 'retrieveMemory') { // Handle retrieveMemory
                                                         toolResult = await (toolFunction as typeof tools.retrieveMemory)(userId, conversationId); // Removed functionArgs.query
                                                                             } else if (functionName === 'listTools') { // Handle listTools
-                                                                              toolResult = (toolFunction as typeof tools.listTools)();                                                      } else {
+                                                                              toolResult = (toolFunction as typeof tools.listTools)();
+                                                                            } else if (functionName === 'getWeather') { // Handle getWeather
+                                                                              toolResult = await (toolFunction as typeof tools.getWeather)(functionArgs.location || userLocation || 'auto');
+                                                                            } else {
                                                         return NextResponse.json({ error: `Tool "${functionName}" is not explicitly handled or recognized.` }, { status: 500 });
                                                       }
                                           
@@ -86,7 +93,8 @@ export async function POST(req: Request) {
                                                       });
           return NextResponse.json({
             response: finalResponse.choices[0].message.content,
-            toolUsed: functionName
+            toolUsed: functionName,
+            toolOutput: toolResult // Include raw tool output
           });
         } else {
           return NextResponse.json({ error: `Tool "${functionName}" not found or recognized.` }, { status: 500 });
