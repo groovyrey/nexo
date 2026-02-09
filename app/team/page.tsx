@@ -142,7 +142,7 @@ const TeamPage = () => {
                 Nexo AI Team
             </h1>
             <p className="text-xl text-gray-400 text-center max-w-2xl font-medium">
-                The brilliant minds behind Nexo AI. A BSIS-2A Group Project for Science, Technology, and Society (MST2).
+                A BSIS-2A Group Project for Science, Technology, and Society (MST2).
             </p>
         </motion.div>
 

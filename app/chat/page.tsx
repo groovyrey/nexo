@@ -245,9 +245,17 @@ const ConversationsPage = () => {
                                         </Typography>
                                         <IconButton
                                             onClick={(e) => handleMenuClick(e, convo.id)}
-                                            sx={{ color: 'gray', '&:hover': { color: 'white' } }}
+                                            sx={{ 
+                                                color: 'rgba(255, 255, 255, 0.4)', 
+                                                '&:hover': { 
+                                                    color: 'white',
+                                                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                                    transform: 'rotate(90deg)'
+                                                },
+                                                transition: 'all 0.3s ease'
+                                            }}
                                         >
-                                            <MoreVertIcon />
+                                            <MoreVertIcon fontSize="small" />
                                         </IconButton>
                                     </div>
                                 }
@@ -303,26 +311,33 @@ const ConversationsPage = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
         PaperProps={{
-            sx: {
-                bgcolor: '#121212',
-                color: 'white',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.1)',
-                mt: 1,
-                minWidth: 150
-            }
+          sx: {
+            bgcolor: 'rgba(20, 20, 20, 0.85)',
+            backdropFilter: 'blur(16px)',
+            color: 'white',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            minWidth: '180px',
+            overflow: 'hidden',
+            mt: 1
+          }
         }}
+        MenuListProps={{ sx: { py: 1 } }}
       >
-        <MenuItem onClick={() => handleOpenRenameDialog(openMenuId!, conversations.find(c => c.id === openMenuId)?.title || '')}>
-            <ListItemIcon><EditIcon fontSize="small" sx={{ color: 'white' }} /></ListItemIcon>
-            Rename
+        <MenuItem 
+            onClick={() => handleOpenRenameDialog(openMenuId!, conversations.find(c => c.id === openMenuId)?.title || '')}
+            sx={{ py: 1.5, px: 2, gap: 1.5, '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
+        >
+            <ListItemIcon sx={{ minWidth: 'auto !important' }}><EditIcon fontSize="small" sx={{ color: 'cyan.400' }} /></ListItemIcon>
+            <Typography variant="body2">Rename Chat</Typography>
         </MenuItem>
         <MenuItem 
             onClick={() => handleOpenDeleteConfirmDialog(openMenuId!)}
-            sx={{ color: 'error.main' }}
+            sx={{ py: 1.5, px: 2, gap: 1.5, color: 'error.main', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
         >
-            <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
-            Delete
+            <ListItemIcon sx={{ minWidth: 'auto !important' }}><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+            <Typography variant="body2">Delete Chat</Typography>
         </MenuItem>
       </Menu>
 
