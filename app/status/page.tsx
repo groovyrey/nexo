@@ -415,7 +415,7 @@ const StatusPage = () => {
             <p className="text-[10px] text-gray-700 uppercase tracking-[0.4em] font-black mb-4">Nexo Infrastructure • v0.1.0</p>
             <div className="flex justify-center gap-8 text-gray-500 text-xs font-bold uppercase tracking-widest">
                 <a href="/status/incidents" className="hover:text-blue-400 transition-colors">Incident Logs</a>
-                <a href="#" className="hover:text-blue-400 transition-colors">API Docs</a>
+                <a href="/docs" className="hover:text-blue-400 transition-colors">API Docs</a>
                 <a href="#" className="hover:text-blue-400 transition-colors">Contact</a>
             </div>
         </footer>

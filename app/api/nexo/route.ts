@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { InferenceClient } from '@huggingface/inference'; 
+import { get } from '@vercel/edge-config';
 import { tools } from '../../../lib/tools'; 
 import { getSystemPrompt } from '../../../lib/systemPrompt'; 
 import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
@@ -16,6 +17,15 @@ const hf = new InferenceClient(hf_token);
 export async function POST(req: Request) {
   try {
     const { messages, userName, userId, conversationId, userLocation, userLocale }: { messages: any[], userName: string, userId: string, conversationId: string, userLocation?: string, userLocale?: string } = await req.json();
+
+    // Fetch dynamic model from Edge Config
+    let aiModel = "moonshotai/Kimi-K2.5";
+    try {
+      const configModel = await get<string>('ai_model');
+      if (configModel) aiModel = configModel;
+    } catch (e) {
+      console.error("Edge Config fetch failed, using fallback model:", e);
+    }
 
     const personalizedSystemPrompt = await getSystemPrompt(userName, userId, conversationId);
     const safeMessages = Array.isArray(messages) ? messages : [];
@@ -40,7 +50,7 @@ export async function POST(req: Request) {
           // 1️⃣ Ask model what to do
           sendEvent('status', 'Nexo is thinking...');
           const modelResponse = await hf.chatCompletion({
-            model: "moonshotai/Kimi-K2.5",
+            model: aiModel,
             messages: fullConversationForAI,
             tools: toolDefinitions,
           });
@@ -94,7 +104,7 @@ export async function POST(req: Request) {
 
               // 3️⃣ Send tool result back to model for final answer
               const finalResponse = await hf.chatCompletion({
-                model: "moonshotai/Kimi-K2.5",
+                model: aiModel,
                 messages: [
                   ...fullConversationForAI,
                   message,

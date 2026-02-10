@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from "next/image";
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Divider } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { FiLogIn, FiLogOut, FiMessageSquare, FiLayout, FiActivity } from "react-icons/fi";
+import { FiLogIn, FiLogOut, FiMessageSquare, FiLayout, FiActivity, FiCode } from "react-icons/fi";
 import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle, signOutWithGoogle } from "@/lib/auth";
 import { useNotification } from "@/lib/notification"; // Import useNotification
@@ -75,6 +75,18 @@ const Navbar = () => {
 
         {/* Desktop navigation */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={() => router.push('/docs')}
+            sx={{
+              px: 2,
+              color: pathname === '/docs' ? 'primary.main' : 'white',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' },
+            }}
+          >
+            Docs
+          </Button>
           {user ? (
             <>
               <Button
@@ -236,6 +248,13 @@ const Navbar = () => {
                 </ListItemButton>
               </>
             )}
+            <ListItemButton 
+              onClick={() => { router.push('/docs'); setDrawerOpen(false); }}
+              selected={pathname === '/docs'}
+            >
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiCode size={20} /></ListItemIcon>
+              <ListItemText primary="Documentation" primaryTypographyProps={{ fontWeight: 500 }} />
+            </ListItemButton>
             <ListItemButton 
               onClick={() => { router.push('/status'); setDrawerOpen(false); }}
               selected={pathname === '/status'}

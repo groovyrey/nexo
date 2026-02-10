@@ -154,6 +154,7 @@ export default function HomeClient() {
             <div className="text-gray-500 text-sm order-2 md:order-1 text-center md:text-left">
               <p>&copy; 2026 Nexo AI. Built for the modern web.</p>
               <div className="mt-4 flex gap-6 justify-center md:justify-start">
+                <Link href="/docs" className="hover:text-white transition-colors">Documentation</Link>
                 <Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
                 <a href="#" className="hover:text-white transition-colors">Privacy</a>
                 <a href="#" className="hover:text-white transition-colors">Terms</a>
