@@ -3,6 +3,7 @@ import { InferenceClient } from '@huggingface/inference';
 import { tools } from '../../../lib/tools'; 
 import { getSystemPrompt } from '../../../lib/systemPrompt'; 
 import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
+import { logIncident } from '@/lib/incidents';
 
 const hf_token = process.env.HF_TOKEN;
 
@@ -137,6 +138,8 @@ export async function POST(req: Request) {
     });
   } catch (err: any) {
     console.error("API route error:", err);
+    // Log crucial failure
+    await logIncident('NEXO_API_ERROR', 'POST /api/nexo', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

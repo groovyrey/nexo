@@ -8,6 +8,10 @@ export interface ConversationMetadata {
   timestamp: number;
   firstMessageId?: string; // Optional: ID of the first user message, used to set the conversation title
   isSpeakEnabled?: boolean;
+  modernize?: boolean;
+  voiceLanguage?: string;
+  temperature?: number;
+  textSize?: string;
 }
 
 export const createConversation = async (
@@ -171,6 +175,26 @@ export const updateConversationSpeakStatus = async (userId: string, conversation
   await update(conversationNodeRef, {
     isSpeakEnabled: isSpeakEnabled,
   });
+};
+
+export const updateConversationModernize = async (userId: string, conversationId: string, modernize: boolean) => {
+  const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
+  await update(conversationNodeRef, { modernize });
+};
+
+export const updateConversationVoiceLanguage = async (userId: string, conversationId: string, voiceLanguage: string) => {
+  const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
+  await update(conversationNodeRef, { voiceLanguage });
+};
+
+export const updateConversationTemperature = async (userId: string, conversationId: string, temperature: number) => {
+  const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
+  await update(conversationNodeRef, { temperature });
+};
+
+export const updateConversationTextSize = async (userId: string, conversationId: string, textSize: string) => {
+  const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
+  await update(conversationNodeRef, { textSize });
 };
 
 export interface ConversationStats {

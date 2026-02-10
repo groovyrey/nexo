@@ -56,6 +56,8 @@ interface ChatMessageProps {
   };
   isUser: boolean;
   user: User | null;
+  modernize?: boolean;
+  textSize?: 'small' | 'medium' | 'large';
 }
 
 const FetchUrlDisplay = ({ data }: { data: any }) => {
@@ -317,10 +319,12 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
   </ReactMarkdown>
 );
 
-const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user }) => {
-  const bubbleBg = isUser ? 'bg-cyan-500/30' : '';
+const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user, modernize = true, textSize = 'medium' }) => {
+  const bubbleBg = isUser ? (modernize ? 'bg-blue-600/40 border border-blue-500/30' : 'bg-cyan-500/30') : '';
   const bubbleText = isUser ? 'text-white' : 'text-gray-100';
   const bubbleBorder = isUser ? '' : '';
+  
+  const fontSizeClass = textSize === 'small' ? 'text-sm' : textSize === 'large' ? 'text-lg' : 'text-base';
 
   const [menuOpenState, setMenuOpenState] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -509,7 +513,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
             </IconButton>
           </div>
           <Box sx={{ display: 'block', width: '100%', textAlign: 'left' }}>
-            <div className="w-full text-gray-100 p-3">
+            <div className={`w-full text-gray-100 p-3 ${fontSizeClass}`}>
               {msg.toolUsed === 'getWeather' && msg.toolOutput && <WeatherDisplay data={msg.toolOutput} />}
               {msg.toolUsed === 'getCurrentDate' && msg.toolOutput && <DateDisplay date={msg.toolOutput} />}
               {msg.toolUsed === 'fetchUrl' && msg.toolOutput && <FetchUrlDisplay data={msg.toolOutput} />}
@@ -535,7 +539,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user 
         >
           <div className="flex flex-col items-end gap-1 max-w-[75%]">
             <div className={`relative rounded-2xl ${bubbleBg} ${bubbleText} ${bubbleBorder} font-sans shadow-lg overflow-hidden`}>
-              <div className="p-3">
+              <div className={`p-3 ${fontSizeClass}`}>
                 <MarkdownRenderer content={msg.content} />
                 {msg.timestamp && (
                   <Typography variant="caption" sx={{ fontSize: '0.7rem', marginTop: '8px', display: 'block', textAlign: 'right', color: 'rgba(255,255,255,0.5)' }}>

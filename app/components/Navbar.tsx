@@ -236,6 +236,13 @@ const Navbar = () => {
                 </ListItemButton>
               </>
             )}
+            <ListItemButton 
+              onClick={() => { router.push('/status'); setDrawerOpen(false); }}
+              selected={pathname === '/status'}
+            >
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiActivity size={20} /></ListItemIcon>
+              <ListItemText primary="System Status" primaryTypographyProps={{ fontWeight: 500 }} />
+            </ListItemButton>
           </List>
 
           <Box sx={{ mt: 'auto', pt: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>

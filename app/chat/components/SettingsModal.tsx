@@ -1,0 +1,383 @@
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import IconButton from '@mui/material/IconButton';
+import Switch from '@mui/material/Switch';
+import Slider from '@mui/material/Slider';
+import Button from '@mui/material/Button';
+import { styled } from '@mui/material/styles';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
+import { FiActivity } from 'react-icons/fi';
+
+interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  settings: {
+    modernize: boolean;
+    isSpeakEnabled: boolean;
+    voiceLanguage: string;
+    temperature: number;
+    textSize: 'small' | 'medium' | 'large';
+  };
+  onSettingChange: (key: string, value: any) => void;
+  conversationTitle: string;
+  conversationId: string;
+  onClearChat: () => void;
+  onDeleteChat: () => void;
+}
+
+const LANGUAGES = [
+  { label: 'English (US)', value: 'en-US' },
+  { label: 'English (UK)', value: 'en-GB' },
+  { label: 'Spanish', value: 'es-ES' },
+  { label: 'French', value: 'fr-FR' },
+  { label: 'German', value: 'de-DE' },
+  { label: 'Italian', value: 'it-IT' },
+  { label: 'Japanese', value: 'ja-JP' },
+  { label: 'Chinese', value: 'zh-CN' },
+];
+
+const IOSSwitch = styled((props: any) => (
+  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+))(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  '& .MuiSwitch-switchBase': {
+    padding: 0,
+    margin: 2,
+    transitionDuration: '300ms',
+    '&.Mui-checked': {
+      transform: 'translateX(16px)',
+      color: '#fff',
+      '& + .MuiSwitch-track': {
+        backgroundColor: '#65C466',
+        opacity: 1,
+        border: 0,
+      },
+      '&.Mui-disabled + .MuiSwitch-track': {
+        opacity: 0.5,
+      },
+    },
+    '&.Mui-focusVisible .MuiSwitch-thumb': {
+      color: '#33cf4d',
+      border: '6px solid #fff',
+    },
+    '&.Mui-disabled .MuiSwitch-thumb': {
+      color: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[600],
+    },
+    '&.Mui-disabled + .MuiSwitch-track': {
+      opacity: theme.palette.mode === 'light' ? 0.7 : 0.3,
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    boxSizing: 'border-box',
+    width: 22,
+    height: 22,
+  },
+  '& .MuiSwitch-track': {
+    borderRadius: 26 / 2,
+    backgroundColor: theme.palette.mode === 'light' ? '#E9E9EA' : '#39393D',
+    opacity: 1,
+    transition: theme.transitions.create(['background-color'], {
+      duration: 500,
+    }),
+  },
+}));
+
+const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClose, settings, onSettingChange, conversationTitle, conversationId, onClearChat, onDeleteChat }) => {
+  const [isLangMenuOpen, setIsLangMenuOpen] = React.useState(false);
+  const langMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+      setIsLangMenuOpen(false);
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const currentLangLabel = LANGUAGES.find(l => l.value === (settings.voiceLanguage || 'en-US'))?.label || 'English (US)';
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/60 z-[1999]"
+          />
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
+            className="fixed inset-0 z-[2000] bg-black flex flex-col"
+          >
+            {/* Header - Matched to Chat Header Height */}
+            <div className="py-4 px-6 border-b border-white/10 flex items-center justify-between bg-black/80 backdrop-blur-md">
+              <div className="flex items-center gap-4">
+                <IconButton onClick={onClose} sx={{ color: 'white', bgcolor: 'white/5', '&:hover': { bgcolor: 'white/10' }, width: 40, height: 40 }}>
+                  <ArrowBackIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+                <h2 className="text-lg font-bold text-white">Settings</h2>
+              </div>
+            </div>
+          
+          {/* Content */}
+          <div className="flex-grow overflow-y-auto p-6 space-y-8 max-w-2xl mx-auto w-full">
+            <section>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">Conversation Info</h3>
+              <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider font-bold">Title</span>
+                  <span className="text-white font-medium text-lg">{conversationTitle}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider font-bold">ID</span>
+                  <span className="text-gray-500 font-mono text-sm break-all">{conversationId}</span>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">AI Behavior</h3>
+              <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-6">
+                 <div className="flex flex-col">
+                    <div className="flex justify-between mb-2">
+                        <span className="text-white font-medium">Creativity</span>
+                        <span className="text-blue-400 font-mono text-sm">{settings.temperature !== undefined ? settings.temperature.toFixed(1) : '0.7'}</span>
+                    </div>
+                    <span className="text-gray-400 text-sm mb-4">Adjust how creative or precise Nexo should be.</span>
+                    <Slider
+                      value={typeof settings.temperature === 'number' ? settings.temperature : 0.7}
+                      onChange={(_, value) => onSettingChange('temperature', value)}
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      sx={{
+                        color: '#3b82f6',
+                        height: 8,
+                        '& .MuiSlider-thumb': {
+                          width: 20,
+                          height: 20,
+                          backgroundColor: '#fff',
+                          '&:before': { boxShadow: '0 4px 8px rgba(0,0,0,0.4)' },
+                          '&:hover, &.Mui-focusVisible, &.Mui-active': { boxShadow: 'none' },
+                        },
+                        '& .MuiSlider-rail': { opacity: 0.2, backgroundColor: '#fff' },
+                      }}
+                    />
+                    <div className="flex justify-between text-[10px] uppercase tracking-wider text-gray-500 font-bold mt-1">
+                        <span>Precise</span>
+                        <span>Balanced</span>
+                        <span>Creative</span>
+                    </div>
+                 </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">Appearance</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-5 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium">Modern Appearance</span>
+                    <span className="text-gray-400 text-sm">Enable experimental visual effects</span>
+                  </div>
+                  <IOSSwitch 
+                    checked={settings.modernize} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSettingChange('modernize', e.target.checked)} 
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4 p-5 rounded-3xl bg-white/[0.03] border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium">Text Size</span>
+                    <span className="text-gray-400 text-sm">Adjust the font size of chat messages</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 bg-black/20 p-1 rounded-xl">
+                     {['small', 'medium', 'large'].map((size) => (
+                        <button
+                            key={size}
+                            onClick={() => onSettingChange('textSize', size)}
+                            className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                                (settings.textSize || 'medium') === size 
+                                ? 'bg-white/10 text-white shadow-sm' 
+                                : 'text-gray-500 hover:text-gray-300'
+                            }`}
+                        >
+                            {size.charAt(0).toUpperCase() + size.slice(1)}
+                        </button>
+                     ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">Voice & Audio</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-5 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium">Voice Responses</span>
+                    <span className="text-gray-400 text-sm">Read out model responses automatically</span>
+                  </div>
+                  <IOSSwitch 
+                    checked={settings.isSpeakEnabled} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSettingChange('isSpeakEnabled', e.target.checked)} 
+                  />
+                </div>
+                
+                <div className={`flex flex-col gap-3 p-5 rounded-3xl bg-white/[0.03] border border-white/5 transition-all duration-500 ${!settings.isSpeakEnabled ? 'opacity-30 pointer-events-none' : ''}`}>
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium">Voice Language</span>
+                    <span className="text-gray-400 text-sm mb-4">Select the language for text-to-speech</span>
+                  </div>
+                  
+                  <div className="relative" ref={langMenuRef}>
+                    <button
+                      onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                      className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm hover:bg-white/10 transition-all active:scale-[0.99]"
+                    >
+                      <span className="font-medium text-blue-400">{currentLangLabel}</span>
+                      <motion.div
+                        animate={{ rotate: isLangMenuOpen ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-gray-500"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M7.247 11.14 2.451 5.658C2.185 5.355 2.398 5 2.851 5h9.448c.453 0 .666.355.402.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                        </svg>
+                      </motion.div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isLangMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.15, ease: "easeOut" }}
+                          className="absolute bottom-full mb-3 left-0 right-0 z-[2100] bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl"
+                        >
+                          <div className="max-h-[300px] overflow-y-auto py-2 custom-scrollbar">
+                            {LANGUAGES.map((lang) => (
+                              <button
+                                key={lang.value}
+                                onClick={() => {
+                                  onSettingChange('voiceLanguage', lang.value);
+                                  setIsLangMenuOpen(false);
+                                }}
+                                className={`w-full text-left px-5 py-3.5 text-sm transition-colors flex items-center justify-between ${
+                                  (settings.voiceLanguage || 'en-US') === lang.value
+                                    ? 'bg-blue-600/10 text-blue-400 font-bold'
+                                    : 'text-gray-300 hover:bg-white/5'
+                                }`}
+                              >
+                                {lang.label}
+                                {(settings.voiceLanguage || 'en-US') === lang.value && (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4 ml-1">Danger Zone</h3>
+              <div className="space-y-3">
+                 <button 
+                    onClick={onClearChat}
+                    className="w-full flex items-center justify-between p-5 rounded-3xl bg-red-500/[0.05] border border-red-500/10 hover:bg-red-500/10 transition-colors group"
+                 >
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
+                            <CleaningServicesIcon fontSize="small" />
+                        </div>
+                        <div className="flex flex-col items-start">
+                            <span className="text-red-400 font-medium">Clear Chat History</span>
+                            <span className="text-red-500/50 text-sm text-left">Remove all messages in this chat</span>
+                        </div>
+                    </div>
+                 </button>
+
+                 <button 
+                    onClick={onDeleteChat}
+                    className="w-full flex items-center justify-between p-5 rounded-3xl bg-red-500/[0.05] border border-red-500/10 hover:bg-red-500/10 transition-colors group"
+                 >
+                    <div className="flex items-center gap-3">
+                         <div className="p-2 rounded-full bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
+                            <DeleteIcon fontSize="small" />
+                        </div>
+                        <div className="flex flex-col items-start">
+                            <span className="text-red-400 font-medium">Delete Conversation</span>
+                            <span className="text-red-500/50 text-sm text-left">Permanently delete this conversation</span>
+                        </div>
+                    </div>
+                 </button>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">About</h3>
+              <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Version</span>
+                  <span className="text-gray-500 font-mono">2.0.1 (Beta)</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Engine</span>
+                  <span className="text-gray-500">Nexo Intelligence</span>
+                </div>
+                <div className="pt-4 border-t border-white/5 space-y-4">
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                        Nexo is an advanced AI assistant designed for research and academic purposes. 
+                        Your settings are saved locally to your device and synchronized across your chat sessions.
+                    </p>
+                    <button 
+                      onClick={() => window.open('/status', '_blank')}
+                      className="w-full py-3 rounded-xl bg-white/5 border border-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                    >
+                      <FiActivity size={14} className="text-blue-500" />
+                      Check System Status
+                    </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </motion.div>
+      </>
+      )}
+    </AnimatePresence>
+  );
+});
+
+SettingsModal.displayName = 'SettingsModal';
+
+export default SettingsModal;

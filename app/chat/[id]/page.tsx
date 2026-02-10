@@ -5,15 +5,17 @@ import Image from 'next/image';
 import ChatMessage from '../components/ChatMessage';
 import { useAuthContext } from '@/lib/context';
 import { useChatStore, ChatMessageType } from '@/lib/store';
-import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus } from '@/lib/realtimedb';
+import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus, updateConversationModernize, updateConversationVoiceLanguage, updateConversationTemperature, updateConversationTextSize } from '@/lib/realtimedb';
 import { database } from "@/lib/firebase";
-import { ref, get } from "firebase/database";
+import { ref, get, update, set, remove } from "firebase/database";
 import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsModal from '../components/SettingsModal';
 import ButtonBase from '@mui/material/ButtonBase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -23,16 +25,6 @@ const ChatPage = () => {
   const authContext = useAuthContext();
   const router = useRouter();
   const { id: conversationId } = useParams();
-
-  const { data: locationData } = useQuery({
-    queryKey: ['location'],
-    queryFn: async () => {
-      const res = await fetch('https://ipapi.co/json/');
-      if (!res.ok) throw new Error('Failed to fetch location');
-      return res.json();
-    },
-    staleTime: Infinity,
-  });
 
   const {
     messagesToDisplayCount,
@@ -54,8 +46,102 @@ const ChatPage = () => {
     resetChat
   } = useChatStore();
 
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+  const [settings, setSettings] = React.useState<{
+    modernize: boolean;
+    isSpeakEnabled: boolean;
+    voiceLanguage: string;
+    temperature: number;
+    textSize: 'small' | 'medium' | 'large';
+  }>({ 
+    modernize: true, 
+    isSpeakEnabled: false, 
+    voiceLanguage: 'en-US',
+    temperature: 0.7,
+    textSize: 'medium'
+  });
+
   if (!authContext) return null;
   const { user } = authContext;
+
+  const handleSettingChange = useCallback((key: string, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    
+    // Save to DB
+    if (user && conversationId) {
+      if (key === 'isSpeakEnabled') {
+        updateConversationSpeakStatus(user.uid, conversationId as string, value as boolean);
+      } else if (key === 'modernize') {
+        updateConversationModernize(user.uid, conversationId as string, value as boolean);
+      } else if (key === 'voiceLanguage') {
+        updateConversationVoiceLanguage(user.uid, conversationId as string, value as string);
+      } else if (key === 'temperature') {
+        updateConversationTemperature(user.uid, conversationId as string, value as number);
+      } else if (key === 'textSize') {
+        updateConversationTextSize(user.uid, conversationId as string, value as 'small' | 'medium' | 'large');
+      }
+    }
+
+    if (key === 'isSpeakEnabled') {
+      setIsSpeakEnabled(value as boolean);
+      if (!value && typeof window !== 'undefined') {
+        window.speechSynthesis.cancel();
+      }
+    }
+  }, [user, conversationId, setIsSpeakEnabled]);
+
+  const handleClearChat = useCallback(async () => {
+    if (!user || !conversationId) return;
+    if (confirm("Are you sure you want to clear all messages? This cannot be undone.")) {
+      try {
+        const messagesRef = ref(database, `conversations/${user.uid}/${conversationId}/messages`);
+        await set(messagesRef, {});
+        setAllMessagesFromDB([]);
+        setMessages([]);
+        toast.success("Chat history cleared.");
+      } catch (error) {
+        console.error("Error clearing chat:", error);
+        toast.error("Failed to clear chat history.");
+      }
+    }
+  }, [user, conversationId, setAllMessagesFromDB, setMessages]);
+
+  const handleDeleteChat = useCallback(async () => {
+    if (!user || !conversationId) return;
+    if (confirm("Are you sure you want to delete this conversation? This action is irreversible.")) {
+      try {
+        const conversationRef = ref(database, `conversations/${user.uid}/${conversationId}`);
+        await remove(conversationRef);
+        toast.success("Conversation deleted.");
+        router.push('/chat');
+      } catch (error) {
+         console.error("Error deleting conversation:", error);
+         toast.error("Failed to delete conversation.");
+      }
+    }
+  }, [user, conversationId, router]);
+
+  const toggleSettings = useCallback(() => {
+    setIsSettingsOpen(prev => !prev);
+  }, []);
+
+  const closeSettings = useCallback(() => {
+    setIsSettingsOpen(false);
+  }, []);
+
+  React.useEffect(() => {
+    setSettings(prev => ({ ...prev, isSpeakEnabled }));
+  }, [isSpeakEnabled]);
+
+  const { data: locationData } = useQuery({
+    queryKey: ['location'],
+    queryFn: async () => {
+      const res = await fetch('https://ipapi.co/json/');
+      if (!res.ok) throw new Error('Failed to fetch location');
+      return res.json();
+    },
+    staleTime: Infinity,
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -72,15 +158,16 @@ const ChatPage = () => {
       .trim();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = settings.voiceLanguage;
     
     // Get available voices
     const voices = window.speechSynthesis.getVoices();
     
-    // Try to find a high-quality "Google" or "Microsoft" or "Natural" voice
+    // Try to find a high-quality "Google" or "Microsoft" or "Natural" voice for the selected language
     const preferredVoice = voices.find(v => 
       (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium')) && 
-      v.lang.startsWith('en')
-    ) || voices.find(v => v.lang.startsWith('en'));
+      v.lang.startsWith(settings.voiceLanguage.split('-')[0])
+    ) || voices.find(v => v.lang.startsWith(settings.voiceLanguage.split('-')[0]));
 
     if (preferredVoice) {
       utterance.voice = preferredVoice;
@@ -139,6 +226,13 @@ const ChatPage = () => {
           if (metadata.isSpeakEnabled !== undefined) {
             setIsSpeakEnabled(metadata.isSpeakEnabled);
           }
+          setSettings(prev => ({
+            ...prev,
+            modernize: metadata.modernize ?? prev.modernize,
+            voiceLanguage: metadata.voiceLanguage ?? prev.voiceLanguage,
+            temperature: metadata.temperature ?? prev.temperature,
+            textSize: (metadata.textSize as any) ?? prev.textSize,
+          }));
         });
       } catch (error) {
         console.error("Error:", error);
@@ -246,9 +340,9 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-col h-screen bg-black text-white font-sans antialiased relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-blue-600/5 blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-blue-600/5 pointer-events-none"></div>
 
-      <header className="sticky top-0 z-50 py-4 px-6 bg-white/5 backdrop-blur-xl flex items-center justify-between border-b border-white/10">
+      <header className="sticky top-0 z-50 py-4 px-6 bg-black/80 flex items-center justify-between border-b border-white/10">
         <div className="flex items-center gap-4">
             <IconButton onClick={() => router.push('/chat')} color="inherit" sx={{ bgcolor: 'white/5', '&:hover': { bgcolor: 'white/10' } }}>
                 <ArrowBackIcon />
@@ -262,45 +356,20 @@ const ChatPage = () => {
             </div>
         </div>
         <div className="flex items-center gap-3">
-            <ButtonBase 
-                onClick={() => {
-                    const newState = !isSpeakEnabled;
-                    setIsSpeakEnabled(newState);
-                    if (user) {
-                        updateConversationSpeakStatus(user.uid, conversationId as string, newState);
-                    }
-                    if (!newState && typeof window !== 'undefined') {
-                        window.speechSynthesis.cancel();
-                    }
-                }} 
+            <IconButton 
+                onClick={toggleSettings}
                 sx={{ 
-                    bgcolor: isSpeakEnabled ? 'rgba(37, 99, 235, 0.15)' : 'white/5',
-                    border: '1px solid',
-                    borderColor: isSpeakEnabled ? 'rgba(59, 130, 246, 0.4)' : 'white/10',
-                    color: isSpeakEnabled ? '#60a5fa' : '#6b7280',
-                    px: 2,
-                    py: 0.75,
-                    borderRadius: '50px',
-                    gap: 1,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { 
-                        bgcolor: isSpeakEnabled ? 'rgba(37, 99, 235, 0.25)' : 'white/10',
-                        borderColor: isSpeakEnabled ? 'rgba(59, 130, 246, 0.6)' : 'white/20',
-                    }
+                    bgcolor: 'white/5', 
+                    color: '#9ca3af',
+                    width: 40,
+                    height: 40,
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    transition: 'all 0.2s',
+                    '&:hover': { bgcolor: 'white/10', color: 'white', borderColor: 'rgba(255,255,255,0.2)' } 
                 }}
             >
-                {isSpeakEnabled ? (
-                    <div className="flex items-center gap-1.5">
-                        <VolumeUpIcon sx={{ fontSize: 18 }} />
-                        <span className="text-[10px] font-black uppercase tracking-wider">Voice On</span>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-1.5 opacity-60">
-                        <VolumeOffIcon sx={{ fontSize: 18 }} />
-                        <span className="text-[10px] font-black uppercase tracking-wider">Voice Off</span>
-                    </div>
-                )}
-            </ButtonBase>
+                <SettingsIcon sx={{ fontSize: 20 }} />
+            </IconButton>
             <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                 <Image src="/nexo.png" alt="Nexo" width={24} height={24} />
             </div>
@@ -337,7 +406,7 @@ const ChatPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                 >
-                    <ChatMessage msg={msg} isUser={msg.role === 'user'} user={user} />
+                    <ChatMessage msg={msg} isUser={msg.role === 'user'} user={user} modernize={settings.modernize} textSize={settings.textSize} />
                 </motion.div>
             ))}
           </AnimatePresence>
@@ -412,6 +481,17 @@ const ChatPage = () => {
           <p className="text-center text-[10px] text-gray-600 mt-4 uppercase tracking-[0.2em] font-bold">Powered by Nexo Intelligence • Academic Project</p>
         </div>
       </div>
+      
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={closeSettings} 
+        settings={settings} 
+        onSettingChange={handleSettingChange}
+        conversationTitle={conversationTitle}
+        conversationId={conversationId as string}
+        onClearChat={handleClearChat}
+        onDeleteChat={handleDeleteChat}
+      />
     </div>
   );
 };
