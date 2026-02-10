@@ -20,9 +20,15 @@ export default {
             transform: 'translateY(0)'
           },
         },
+        'shake': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-5px)' },
+          '75%': { transform: 'translateX(5px)' },
+        }
       },
       animation: {
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+        'shake': 'shake 0.2s ease-in-out 0s 2',
       },
       fontFamily: {
         sans: ['var(--font-open-sans)'],

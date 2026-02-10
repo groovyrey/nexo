@@ -3,15 +3,14 @@ import type { NextRequest } from 'next/server';
 import { get } from '@vercel/edge-config';
 
 export async function middleware(request: NextRequest) {
-  // 1. Skip middleware for static assets, internal Next.js calls, and the maintenance page itself
+  // 1. Skip middleware for static assets, internal Next.js calls, and images
   const { pathname } = request.nextUrl;
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
     pathname.startsWith('/api/health') ||
     pathname === '/favicon.ico' ||
-    pathname === '/nexo.png' ||
-    pathname === '/maintenance'
+    pathname === '/nexo.png'
   ) {
     return NextResponse.next();
   }
@@ -21,11 +20,38 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 2. Check Edge Config for system status
   try {
-    // 2. Check Edge Config for system status
     const status = await get<string>('status');
+    const isUnlocked = request.cookies.get('app_unlocked')?.value === 'true';
 
-    // 3. If in maintenance mode, redirect/rewrite to maintenance page
+    console.log(`Middleware - Path: ${pathname}, Status: ${status}, Unlocked: ${isUnlocked}`);
+
+    // 3. Priority 1: Locked Status
+    if (status === 'locked') {
+      if (!isUnlocked) {
+        if (pathname.startsWith('/api') && pathname !== '/api/unlock') {
+          return new NextResponse(
+            JSON.stringify({ 
+              error: 'Locked', 
+              message: 'System access is restricted. Authentication required.',
+              status: 403 
+            }),
+            { 
+              status: 403, 
+              headers: { 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+        
+        if (pathname !== '/locked' && pathname !== '/api/unlock') {
+          return NextResponse.redirect(new URL('/locked', request.url));
+        }
+        return NextResponse.next();
+      }
+    }
+
+    // 4. Priority 2: Maintenance Status
     if (status === 'maintenance') {
       if (pathname.startsWith('/api')) {
         return new NextResponse(
@@ -40,8 +66,10 @@ export async function middleware(request: NextRequest) {
           }
         );
       }
-      // We use rewrite so the URL doesn't change, but the content is the maintenance page
-      return NextResponse.rewrite(new URL('/maintenance', request.url));
+      if (pathname !== '/maintenance') {
+        return NextResponse.redirect(new URL('/maintenance', request.url));
+      }
+      return NextResponse.next();
     }
   } catch (error) {
     // Fallback: if Edge Config fails, let the app run
