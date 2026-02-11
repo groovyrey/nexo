@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function MaintenancePage() {
-  const [reason, setReason] = useState("Nexo is upgrading its neural architecture. We are temporarily offline for essential core infrastructure maintenance.");
+function MaintenanceContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [reason, setReason] = useState(searchParams.get('reason') || "Nexo is currently undergoing essential core infrastructure maintenance.");
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -79,5 +80,13 @@ export default function MaintenancePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MaintenancePage() {
+  return (
+    <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+      <MaintenanceContent />
+    </Suspense>
   );
 }

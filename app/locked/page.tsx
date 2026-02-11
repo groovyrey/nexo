@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FiLock, FiArrowRight, FiShield } from 'react-icons/fi';
 
-export default function LockedPage() {
+function LockedContent() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [reason, setReason] = useState(searchParams.get('reason') || 'Unauthorized access restricted. Please enter security key.');
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -18,6 +20,10 @@ export default function LockedPage() {
         const data = await res.json();
         if (data.status !== 'locked') {
           router.replace('/');
+        }
+
+        if (data.reason) {
+          setReason(data.reason);
         }
       } catch (err) {
         console.error('Failed to check status:', err);
@@ -90,7 +96,7 @@ export default function LockedPage() {
         <div className="space-y-8">
             <div className="space-y-2">
                 <h1 className="text-4xl font-black tracking-tighter">LOCKED <span className="text-red-500">.</span></h1>
-                <p className="text-gray-400 text-sm font-light">Unauthorized access restricted. Please enter security key.</p>
+                <p className="text-gray-400 text-sm font-light">{reason}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,5 +130,13 @@ export default function LockedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LockedPage() {
+  return (
+    <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+      <LockedContent />
+    </Suspense>
   );
 }

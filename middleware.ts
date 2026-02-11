@@ -22,19 +22,22 @@ export async function middleware(request: NextRequest) {
 
   // 2. Check Edge Config for system status
   try {
-    const status = await get<string>('status');
+    const [status, reason] = await Promise.all([
+      get<string>('status'),
+      get<string>('reason')
+    ]);
     const isUnlocked = request.cookies.get('app_unlocked')?.value === 'true';
 
-    console.log(`Middleware - Path: ${pathname}, Status: ${status}, Unlocked: ${isUnlocked}`);
+    console.log(`Middleware - Path: ${pathname}, Status: ${status}, Reason: ${reason}, Unlocked: ${isUnlocked}`);
 
     // 3. Priority 1: Locked Status
     if (status === 'locked') {
       if (!isUnlocked) {
-        if (pathname.startsWith('/api') && pathname !== '/api/unlock') {
+        if (pathname.startsWith('/api') && pathname !== '/api/unlock' && pathname !== '/api/status') {
           return new NextResponse(
             JSON.stringify({ 
               error: 'Locked', 
-              message: 'System access is restricted. Authentication required.',
+              message: reason || 'System access is restricted. Authentication required.',
               status: 403 
             }),
             { 
@@ -44,8 +47,10 @@ export async function middleware(request: NextRequest) {
           );
         }
         
-        if (pathname !== '/locked' && pathname !== '/api/unlock') {
-          return NextResponse.redirect(new URL('/locked', request.url));
+        if (pathname !== '/locked' && pathname !== '/api/unlock' && pathname !== '/api/status') {
+          const url = new URL('/locked', request.url);
+          if (reason) url.searchParams.set('reason', reason);
+          return NextResponse.redirect(url);
         }
         return NextResponse.next();
       }
@@ -53,11 +58,11 @@ export async function middleware(request: NextRequest) {
 
     // 4. Priority 2: Maintenance Status
     if (status === 'maintenance') {
-      if (pathname.startsWith('/api')) {
+      if (pathname.startsWith('/api') && pathname !== '/api/status') {
         return new NextResponse(
           JSON.stringify({ 
             error: 'Service Unavailable', 
-            message: 'Nexo AI is currently undergoing scheduled maintenance.',
+            message: reason || 'Nexo AI is currently undergoing scheduled maintenance.',
             status: 503 
           }),
           { 
@@ -66,8 +71,10 @@ export async function middleware(request: NextRequest) {
           }
         );
       }
-      if (pathname !== '/maintenance') {
-        return NextResponse.redirect(new URL('/maintenance', request.url));
+      if (pathname !== '/maintenance' && pathname !== '/api/status') {
+        const url = new URL('/maintenance', request.url);
+        if (reason) url.searchParams.set('reason', reason);
+        return NextResponse.redirect(url);
       }
       return NextResponse.next();
     }
