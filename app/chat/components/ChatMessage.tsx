@@ -58,6 +58,7 @@ interface ChatMessageProps {
   user: User | null;
   modernize?: boolean;
   textSize?: 'small' | 'medium' | 'large';
+  voiceLanguage?: string;
 }
 
 const FetchUrlDisplay = ({ data }: { data: any }) => {
@@ -374,15 +375,17 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user,
       .trim();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = voiceLanguage || 'en-US';
     
     // Get available voices
     const voices = window.speechSynthesis.getVoices();
     
-    // Try to find a high-quality "Google" or "Microsoft" or "Natural" voice
+    // Try to find a high-quality "Google" or "Microsoft" or "Natural" voice for the selected language
+    const langCode = (voiceLanguage || 'en-US').split('-')[0];
     const preferredVoice = voices.find(v => 
       (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium')) && 
-      v.lang.startsWith('en')
-    ) || voices.find(v => v.lang.startsWith('en'));
+      v.lang.startsWith(langCode)
+    ) || voices.find(v => v.lang.startsWith(langCode));
 
     if (preferredVoice) {
       utterance.voice = preferredVoice;

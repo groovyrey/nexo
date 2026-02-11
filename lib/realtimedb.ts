@@ -1,6 +1,5 @@
 import { database } from "./firebase";
 import { ref, set, onValue, push, query, limitToLast, get, remove, orderByChild, child, update } from "firebase/database"; // Added update
-import { logIncident } from "./incidents";
 
 export interface ConversationMetadata {
   id: string; // The conversation ID (key of the node)
@@ -61,7 +60,6 @@ export const createConversation = async (
 
     return finalConversationId;
   } catch (error: any) {
-    await logIncident('DB_CREATE_CONVO_ERROR', 'createConversation', error.message);
     throw error;
   }
 };
@@ -129,7 +127,6 @@ export const writeMessage = async (userId: string, conversationId: string, messa
 
     await update(conversationNodeRef, updates);
   } catch (error: any) {
-    await logIncident('DB_WRITE_MESSAGE_ERROR', 'writeMessage', error.message);
     throw error;
   }
 };

@@ -11,8 +11,7 @@ import {
   FiDatabase, 
   FiShield, 
   FiGlobe,
-  FiRefreshCw,
-  FiInfo
+  FiRefreshCw
 } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -85,8 +84,6 @@ const StatusCard = ({
   );
 };
 
-import { Incident } from '@/lib/incidents';
-
 type ServiceStatusType = 'operational' | 'degraded' | 'outage' | 'loading';
 
 interface ServiceInfo {
@@ -98,8 +95,7 @@ const StatusPage = () => {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [currentMonthIncidents, setCurrentMonthIncidents] = useState(0);
+  const [version, setVersion] = useState('v0.1.0');
   const [services, setServices] = useState<Record<string, ServiceInfo>>({
     nexoEngine: { status: 'loading', latency: '--' },
     firebaseDb: { status: 'loading', latency: '--' },
@@ -121,6 +117,7 @@ const StatusPage = () => {
           searchApi: data.services.searchApi as ServiceInfo,
           authService: data.services.authService as ServiceInfo,
         }));
+        if (data.version) setVersion(data.version);
         setLastCheck(new Date());
       }
     } catch (error) {
@@ -128,37 +125,17 @@ const StatusPage = () => {
     }
   };
 
-  const fetchIncidents = async () => {
-    try {
-        const response = await fetch('/api/incidents');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.incidents) {
-                setIncidents(data.incidents);
-                setCurrentMonthIncidents(data.currentMonthCount || 0);
-            }
-        } else {
-             // If fetch fails (maybe table doesn't exist), try to init table once
-             await fetch('/api/incidents', { method: 'POST' });
-        }
-    } catch (e) {
-        console.error("Failed to fetch incidents", e);
-    }
-  };
-
   useEffect(() => {
     fetchStatus();
-    fetchIncidents();
     const interval = setInterval(() => {
         fetchStatus();
-        fetchIncidents();
     }, 60000); // Refresh every minute
     return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchStatus(), fetchIncidents()]);
+    await fetchStatus();
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
@@ -303,118 +280,9 @@ const StatusPage = () => {
           />
         </motion.div>
 
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-        >
-            <Paper
-                id="incidents"
-                elevation={0}
-                sx={{
-                    p: 4,
-                    bgcolor: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    borderRadius: '40px',
-                    mb: 8,
-                    scrollMarginTop: '2rem'
-                }}
-            >
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <Avatar sx={{ bgcolor: 'red.900/20', color: 'red.400' }}>
-                            <FiAlertCircle size={20} />
-                        </Avatar>
-                        <div>
-                            <h4 className="text-lg font-bold">Recent Incidents</h4>
-                            <p className="text-gray-500 text-sm">Real-time error logs from critical systems</p>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={() => router.push('/status/incidents')}
-                        className="text-xs font-black uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors"
-                    >
-                        View All
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    {incidents.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <FiCheckCircle size={40} className="mx-auto mb-4 text-green-500/50" />
-                            <p>No active incidents reported.</p>
-                        </div>
-                    ) : (
-                        incidents.map((incident) => (
-                            <div key={incident.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-mono text-red-400 bg-red-900/20 px-2 py-1 rounded">{incident.error_code}</span>
-                                    <span className="text-xs text-gray-500">{new Date(incident.created_at).toLocaleString()}</span>
-                                </div>
-                                <h5 className="text-sm font-bold text-gray-300 mb-1">{incident.method}</h5>
-                                <p className="text-sm text-gray-400 font-mono break-all">{incident.message}</p>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </Paper>
-
-            <Paper
-                elevation={0}
-                sx={{
-                    p: 4,
-                    bgcolor: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    borderRadius: '40px',
-                    mb: 8
-                }}
-            >
-                <div className="flex items-center gap-4 mb-8">
-                    <Avatar sx={{ bgcolor: 'blue.600/20', color: 'blue.400' }}>
-                        <FiInfo size={20} />
-                    </Avatar>
-                    <div>
-                        <h4 className="text-lg font-bold">Uptime History</h4>
-                        <p className="text-gray-500 text-sm">System availability over the last 30 days</p>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    {[
-                        { label: 'February 2026', uptime: currentMonthIncidents > 0 ? '99.95%' : '100%', incidents: currentMonthIncidents },
-                        { label: 'January 2026', uptime: '99.98%', incidents: 1 },
-                        { label: 'December 2025', uptime: '100%', incidents: 0 },
-                    ].map((month, idx) => (
-                        <div key={idx} className="flex flex-col gap-2 group cursor-default">
-                            <div className="flex items-center justify-between">
-                                <span className="text-gray-400 font-bold group-hover:text-white transition-colors">{month.label}</span>
-                                <div className="flex items-center gap-4">
-                                    <span className={`text-[10px] font-black uppercase tracking-widest ${month.incidents > 0 ? 'text-orange-500' : 'text-gray-600'}`}>
-                                        {month.incidents} {month.incidents === 1 ? 'Incident' : 'Incidents'}
-                                    </span>
-                                    <span className="text-blue-400 font-black text-sm">{month.uptime}</span>
-                                </div>
-                            </div>
-                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: month.uptime }}
-                                    transition={{ duration: 1, delay: idx * 0.2 }}
-                                    className={`h-full rounded-full ${month.incidents > 0 ? 'bg-gradient-to-r from-blue-500 to-orange-500' : 'bg-blue-500'}`}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </Paper>
-
-
-        </motion.div>
-
         <footer className="mt-20 text-center">
-            <p className="text-[10px] text-gray-700 uppercase tracking-[0.4em] font-black mb-4">Nexo Infrastructure • v0.1.0</p>
+            <p className="text-[10px] text-gray-700 uppercase tracking-[0.4em] font-black mb-4">Nexo Infrastructure • {version}</p>
             <div className="flex justify-center gap-8 text-gray-500 text-xs font-bold uppercase tracking-widest">
-                <a href="/status/incidents" className="hover:text-blue-400 transition-colors">Incident Logs</a>
                 <a href="/docs" className="hover:text-blue-400 transition-colors">API Docs</a>
                 <a href="#" className="hover:text-blue-400 transition-colors">Contact</a>
             </div>

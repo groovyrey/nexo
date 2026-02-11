@@ -2,7 +2,6 @@
 import { webSearch as originalWebSearch } from '../app/api/nexo/tools/webSearch';
 import { writeMemoryToConversation, retrieveConsolidatedMemory } from './realtimedb'; // Updated import
 import { toolDefinitions } from './toolDefinitions';
-import { logIncident } from './incidents';
 
 export type ToolsType = {
   webSearch: (query: string) => Promise<any>;
@@ -61,7 +60,6 @@ export const tools: ToolsType = {
       });
     } catch (error: any) {
       console.error('Error in fetchUrl tool:', error);
-      await logIncident('TOOL_FETCH_URL_ERROR', 'tools.fetchUrl', error.message);
       return JSON.stringify({ error: error.message, url });
     }
   },
@@ -104,7 +102,6 @@ export const tools: ToolsType = {
       });
     } catch (error: any) {
       console.error('Error in getWeather tool:', error);
-      await logIncident('TOOL_WEATHER_ERROR', 'tools.getWeather', error.message);
       return JSON.stringify({ error: error.message, location });
     }
   },

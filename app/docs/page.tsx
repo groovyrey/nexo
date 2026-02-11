@@ -130,7 +130,14 @@ export default function DocsPage() {
               <div className="flex-shrink-0 w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-black">1</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">Dynamic Configuration</h3>
-                <p className="text-gray-400 text-sm">The system queries <strong>Vercel Edge Config</strong> to determine which AI model to use (e.g., Kimi-K2.5 vs other variants) without requiring a code redeploy.</p>
+                <p className="text-gray-400 text-sm">
+                  The system queries <strong>Vercel Edge Config</strong> for real-time environment management. This includes:
+                </p>
+                <ul className="mt-2 space-y-2 text-xs text-gray-500 list-disc list-inside">
+                  <li><strong>AI Model Switching:</strong> Dynamic selection of Kimi-K2.5 variants.</li>
+                  <li><strong>Environment-Aware Tokens:</strong> Automated switching between <code className="text-blue-400">dev</code> and <code className="text-pro">pro</code> Hugging Face tokens based on deployment status.</li>
+                  <li><strong>Dynamic Versioning:</strong> Application version management without code changes.</li>
+                </ul>
               </div>
             </div>
 
@@ -181,13 +188,13 @@ export default function DocsPage() {
             <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-3">
               <h3 className="text-lg font-bold text-white">Neon Database</h3>
               <p className="text-sm text-gray-400">
-                A serverless <strong>PostgreSQL</strong> provider used to log system-wide incidents and performance metrics, ensuring high availability and ACID compliance for critical logs.
+                A serverless <strong>PostgreSQL</strong> provider used for persistence and data storage.
               </p>
             </div>
             <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-3">
               <h3 className="text-lg font-bold text-white">Vercel</h3>
               <p className="text-sm text-gray-400">
-                The primary hosting platform. Nexo leverages Vercel's <strong>Edge Network</strong> for low-latency delivery, <strong>Blob Storage</strong> for efficient file handling, and <strong>Edge Config</strong> for real-time, zero-latency model switching.
+                The primary hosting platform. Nexo leverages Vercel's <strong>Edge Network</strong> for low-latency delivery, <strong>Blob Storage</strong> for efficient file handling, and <strong>Edge Config</strong> for real-time model switching, environment-specific token selection, and dynamic version management.
               </p>
             </div>
           </div>
@@ -219,7 +226,7 @@ export default function DocsPage() {
                 <span className="text-white font-bold flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Neon (Postgres)
                 </span>
-                <p className="text-xs text-gray-500">Relational storage dedicated to system incidents, error logging, and operational telemetry.</p>
+                <p className="text-xs text-gray-500">Relational storage dedicated to system metadata and operational telemetry.</p>
               </li>
               <li className="space-y-2">
                 <span className="text-white font-bold flex items-center gap-2">

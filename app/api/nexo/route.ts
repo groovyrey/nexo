@@ -4,28 +4,35 @@ import { get } from '@vercel/edge-config';
 import { tools } from '../../../lib/tools'; 
 import { getSystemPrompt } from '../../../lib/systemPrompt'; 
 import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
-import { logIncident } from '@/lib/incidents';
-
-const hf_token = process.env.HF_TOKEN;
-
-if (!hf_token) {
-  throw new Error("HF_TOKEN environment variable is not set. Please set it to your Hugging Face API token.");
-}
-
-const hf = new InferenceClient(hf_token);
 
 export async function POST(req: Request) {
   try {
     const { messages, userName, userId, conversationId, userLocation, userLocale }: { messages: any[], userName: string, userId: string, conversationId: string, userLocation?: string, userLocale?: string } = await req.json();
 
-    // Fetch dynamic model from Edge Config
+    // Fetch HF Token and AI Model from Edge Config
+    let hfToken = process.env.HF_TOKEN;
     let aiModel = "moonshotai/Kimi-K2.5";
+    
     try {
-      const configModel = await get<string>('ai_model');
+      const isDev = process.env.NODE_ENV === 'development';
+      const tokenKey = isDev ? 'dev_hf_token' : 'pro_hf_token';
+      
+      const [configToken, configModel] = await Promise.all([
+        get<string>(tokenKey),
+        get<string>('ai_model')
+      ]);
+
+      if (configToken) hfToken = configToken;
       if (configModel) aiModel = configModel;
     } catch (e) {
-      console.error("Edge Config fetch failed, using fallback model:", e);
+      console.error("Edge Config fetch failed, using fallback values:", e);
     }
+
+    if (!hfToken) {
+      throw new Error("Hugging Face token is not set. Please check Edge Config or HF_TOKEN environment variable.");
+    }
+
+    const hf = new InferenceClient(hfToken);
 
     const personalizedSystemPrompt = await getSystemPrompt(userName, userId, conversationId);
     const safeMessages = Array.isArray(messages) ? messages : [];
@@ -133,7 +140,6 @@ export async function POST(req: Request) {
           }
         } catch (err: any) {
           console.error("Stream error:", err);
-          await logIncident('STREAM_ERROR', 'POST /api/nexo', err.message);
           sendEvent('error', err.message);
         } finally {
           controller.close();
@@ -150,8 +156,6 @@ export async function POST(req: Request) {
     });
   } catch (err: any) {
     console.error("API route error:", err);
-    // Log crucial failure
-    await logIncident('NEXO_API_ERROR', 'POST /api/nexo', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

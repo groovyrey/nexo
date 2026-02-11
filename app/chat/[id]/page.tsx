@@ -414,7 +414,7 @@ const ChatPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                 >
-                    <ChatMessage msg={msg} isUser={msg.role === 'user'} user={user} modernize={settings.modernize} textSize={settings.textSize} />
+                    <ChatMessage msg={msg} isUser={msg.role === 'user'} user={user} modernize={settings.modernize} textSize={settings.textSize} voiceLanguage={settings.voiceLanguage} />
                 </motion.div>
             ))}
           </AnimatePresence>

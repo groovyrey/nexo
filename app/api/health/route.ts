@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { get } from '@vercel/edge-config';
 
 export async function GET() {
   const start = Date.now();
@@ -11,6 +12,15 @@ export async function GET() {
   };
 
   try {
+    // 0. Fetch version from Edge Config
+    let version = 'v0.1.0';
+    try {
+      const configVersion = await get<string>('version');
+      if (configVersion) version = configVersion;
+    } catch (e) {
+      console.error("Failed to fetch version from Edge Config", e);
+    }
+
     // 1. Check Nexo Engine (Hugging Face)
     const hfStart = Date.now();
     try {
@@ -63,6 +73,7 @@ export async function GET() {
 
     return NextResponse.json({
         services: results,
+        version: version,
         timestamp: new Date().toISOString()
     });
 

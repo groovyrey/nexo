@@ -100,7 +100,19 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
   const [newTitle, setNewTitle] = React.useState(conversationTitle);
+  const [version, setVersion] = React.useState('2.0.1 (Beta)');
   const langMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      fetch('/api/status')
+        .then(res => res.json())
+        .then(data => {
+          if (data.version) setVersion(data.version);
+        })
+        .catch(err => console.error("Failed to fetch version:", err));
+    }
+  }, [isOpen]);
 
   React.useEffect(() => {
     setNewTitle(conversationTitle);
@@ -374,7 +386,7 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
               <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-300">Version</span>
-                  <span className="text-gray-500 font-mono">2.0.1 (Beta)</span>
+                  <span className="text-gray-500 font-mono">{version}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-300">Engine</span>
