@@ -320,7 +320,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
   </ReactMarkdown>
 );
 
-const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user, modernize = true, textSize = 'medium' }) => {
+const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user, modernize = true, textSize = 'medium', voiceLanguage = 'en-US' }) => {
   const bubbleBg = isUser ? (modernize ? 'bg-blue-600/40 border border-blue-500/30' : 'bg-cyan-500/30') : '';
   const bubbleText = isUser ? 'text-white' : 'text-gray-100';
   const bubbleBorder = isUser ? '' : '';
