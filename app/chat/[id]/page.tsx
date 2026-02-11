@@ -5,7 +5,7 @@ import Image from 'next/image';
 import ChatMessage from '../components/ChatMessage';
 import { useAuthContext } from '@/lib/context';
 import { useChatStore, ChatMessageType } from '@/lib/store';
-import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus, updateConversationModernize, updateConversationVoiceLanguage, updateConversationTemperature, updateConversationTextSize } from '@/lib/realtimedb';
+import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus, updateConversationModernize, updateConversationVoiceLanguage, updateConversationTemperature, updateConversationTextSize, updateConversationTitle } from '@/lib/realtimedb';
 import { database } from "@/lib/firebase";
 import { ref, get, update, set, remove } from "firebase/database";
 import SendIcon from '@mui/icons-material/Send';
@@ -92,34 +92,42 @@ const ChatPage = () => {
 
   const handleClearChat = useCallback(async () => {
     if (!user || !conversationId) return;
-    if (confirm("Are you sure you want to clear all messages? This cannot be undone.")) {
-      try {
-        const messagesRef = ref(database, `conversations/${user.uid}/${conversationId}/messages`);
-        await set(messagesRef, {});
-        setAllMessagesFromDB([]);
-        setMessages([]);
-        toast.success("Chat history cleared.");
-      } catch (error) {
-        console.error("Error clearing chat:", error);
-        toast.error("Failed to clear chat history.");
-      }
+    try {
+      const messagesRef = ref(database, `conversations/${user.uid}/${conversationId}/messages`);
+      await set(messagesRef, {});
+      setAllMessagesFromDB([]);
+      setMessages([]);
+      toast.success("Chat history cleared.");
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+      toast.error("Failed to clear chat history.");
     }
   }, [user, conversationId, setAllMessagesFromDB, setMessages]);
 
   const handleDeleteChat = useCallback(async () => {
     if (!user || !conversationId) return;
-    if (confirm("Are you sure you want to delete this conversation? This action is irreversible.")) {
-      try {
-        const conversationRef = ref(database, `conversations/${user.uid}/${conversationId}`);
-        await remove(conversationRef);
-        toast.success("Conversation deleted.");
-        router.push('/chat');
-      } catch (error) {
-         console.error("Error deleting conversation:", error);
-         toast.error("Failed to delete conversation.");
-      }
+    try {
+      const conversationRef = ref(database, `conversations/${user.uid}/${conversationId}`);
+      await remove(conversationRef);
+      toast.success("Conversation deleted.");
+      router.push('/chat');
+    } catch (error) {
+       console.error("Error deleting conversation:", error);
+       toast.error("Failed to delete conversation.");
     }
   }, [user, conversationId, router]);
+
+  const handleRenameChat = useCallback(async (newTitle: string) => {
+    if (!user || !conversationId) return;
+    try {
+      await updateConversationTitle(user.uid, conversationId as string, newTitle);
+      setConversationTitle(newTitle);
+      toast.success("Chat renamed successfully.");
+    } catch (error) {
+      console.error("Error renaming chat:", error);
+      toast.error("Failed to rename chat.");
+    }
+  }, [user, conversationId, setConversationTitle]);
 
   const toggleSettings = useCallback(() => {
     setIsSettingsOpen(prev => !prev);
@@ -491,6 +499,7 @@ const ChatPage = () => {
         conversationId={conversationId as string}
         onClearChat={handleClearChat}
         onDeleteChat={handleDeleteChat}
+        onRenameChat={handleRenameChat}
       />
     </div>
   );

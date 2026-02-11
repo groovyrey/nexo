@@ -1,18 +1,34 @@
-import React from 'react';
-import Image from 'next/image';
-import { get } from '@vercel/edge-config';
+'use client';
 
-export default async function MaintenancePage() {
-  let reason = "Nexo is upgrading its neural architecture. We are temporarily offline for essential core infrastructure maintenance.";
-  
-  try {
-    const customReason = await get<string>('reason');
-    if (customReason) {
-      reason = customReason;
-    }
-  } catch (error) {
-    console.error('Error fetching maintenance reason:', error);
-  }
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+
+export default function MaintenancePage() {
+  const [reason, setReason] = useState("Nexo is upgrading its neural architecture. We are temporarily offline for essential core infrastructure maintenance.");
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.status !== 'maintenance') {
+          router.replace('/');
+        }
+        
+        if (data.reason) {
+          setReason(data.reason);
+        }
+      } catch (err) {
+        console.error('Failed to check status:', err);
+      }
+    };
+
+    checkStatus();
+    window.addEventListener('focus', checkStatus);
+    return () => window.removeEventListener('focus', checkStatus);
+  }, [router]);
 
   return (
     <div className="fixed inset-0 z-[9999] bg-[#050505] text-white flex flex-col items-center justify-center py-12 px-6 text-center overflow-y-auto">

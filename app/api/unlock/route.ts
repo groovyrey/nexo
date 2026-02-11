@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { get } from '@vercel/edge-config';
+import { logIncident } from '@/lib/incidents';
 
 export async function POST(request: Request) {
   try {
@@ -22,11 +23,15 @@ export async function POST(request: Request) {
       return response;
     }
 
+    // Log failed attempt as incident
+    await logIncident('AUTH_FAILURE', 'POST /api/unlock', 'Invalid security key attempt detected.');
+
     return NextResponse.json(
       { error: 'Invalid password' },
       { status: 401 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    await logIncident('AUTH_CRASH', 'POST /api/unlock', error.message || 'Unknown error');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

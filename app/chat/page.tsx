@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthContext } from '@/lib/context';
-import { getConversationList, createConversation, deleteConversation, updateConversationTitle, ConversationMetadata } from '@/lib/realtimedb';
+import { getConversationList, createConversation, ConversationMetadata } from '@/lib/realtimedb';
 import Image from 'next/image';
 
 import ConversationSkeleton from '../components/ConversationSkeleton';
@@ -16,14 +16,8 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Paper } from '@mui/material';
+import { Typography, Box, Button, Paper } from '@mui/material';
 import { useNotification } from "@/lib/notification";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -49,24 +43,6 @@ const ConversationsPage = () => {
 
   const { user } = authContext;
 
-  const [openRenameDialog, setOpenRenameDialog] = useState(false);
-  const [renameConversationId, setRenameConversationId] = useState('');
-  const [renameConversationTitle, setRenameConversationTitle] = useState('');
-  const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
-  const [deleteConversationId, setDeleteConversationId] = useState('');
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, conversationId: string) => {
-    setAnchorEl(event.currentTarget);
-    setOpenMenuId(conversationId);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setOpenMenuId(null);
-  };
-
   const handleCreateNewConversation = useCallback(async (idToCreate?: string, shouldRedirect: boolean = true) => {
     if (!user) return;
     if (conversations.length >= 5 && idToCreate !== "default") {
@@ -82,55 +58,6 @@ const ConversationsPage = () => {
       console.error("Error creating new conversation:", error);
     }
   }, [user, router, conversations]);
-
-  const handleOpenRenameDialog = useCallback((convoId: string, currentTitle: string) => {
-    handleMenuClose();
-    setRenameConversationId(convoId);
-    setRenameConversationTitle(currentTitle);
-    setOpenRenameDialog(true);
-  }, []);
-
-  const handleCloseRenameDialog = useCallback(() => {
-    setOpenRenameDialog(false);
-    setRenameConversationId('');
-    setRenameConversationTitle('');
-  }, []);
-
-  const handleRenameConversation = useCallback(async () => {
-    if (!user || !renameConversationId || !renameConversationTitle.trim()) return;
-    try {
-      await updateConversationTitle(user.uid, renameConversationId, renameConversationTitle.trim());
-      handleCloseRenameDialog();
-    } catch (error) {
-      console.error("Error renaming conversation:", error);
-    }
-  }, [user, renameConversationId, renameConversationTitle, handleCloseRenameDialog]);
-
-  const handleOpenDeleteConfirmDialog = useCallback((convoId: string) => {
-    handleMenuClose();
-    setDeleteConversationId(convoId);
-    setOpenDeleteConfirmDialog(true);
-  }, []);
-
-  const handleCloseDeleteConfirmDialog = useCallback(() => {
-    setOpenDeleteConfirmDialog(false);
-    setDeleteConversationId('');
-  }, []);
-
-  const handleConfirmDeleteConversation = useCallback(async () => {
-    if (!user || !deleteConversationId) return;
-    if (deleteConversationId === "default") {
-        showNotification("The default conversation cannot be deleted.", "error");
-        handleCloseDeleteConfirmDialog();
-        return;
-    }
-    try {
-      await deleteConversation(user.uid, deleteConversationId);
-      handleCloseDeleteConfirmDialog();
-    } catch (error) {
-      console.error("Error deleting conversation:", error);
-    }
-  }, [user, deleteConversationId, handleCloseDeleteConfirmDialog]);
 
   useEffect(() => {
     if (user === null) router.push('/');
@@ -243,20 +170,6 @@ const ConversationsPage = () => {
                                         <Typography variant="caption" sx={{ color: 'gray' }}>
                                             {formatTimestamp(convo.timestamp)}
                                         </Typography>
-                                        <IconButton
-                                            onClick={(e) => handleMenuClick(e, convo.id)}
-                                            sx={{ 
-                                                color: 'rgba(255, 255, 255, 0.4)', 
-                                                '&:hover': { 
-                                                    color: 'white',
-                                                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                                    transform: 'rotate(90deg)'
-                                                },
-                                                transition: 'all 0.3s ease'
-                                            }}
-                                        >
-                                            <MoreVertIcon fontSize="small" />
-                                        </IconButton>
                                     </div>
                                 }
                             >
@@ -304,80 +217,6 @@ const ConversationsPage = () => {
           </List>
         )}
       </div>
-
-      {/* Menus and Dialogs */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            bgcolor: 'rgba(20, 20, 20, 0.85)',
-            backdropFilter: 'blur(16px)',
-            color: 'white',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-            minWidth: '180px',
-            overflow: 'hidden',
-            mt: 1
-          }
-        }}
-        MenuListProps={{ sx: { py: 1 } }}
-      >
-        <MenuItem 
-            onClick={() => handleOpenRenameDialog(openMenuId!, conversations.find(c => c.id === openMenuId)?.title || '')}
-            sx={{ py: 1.5, px: 2, gap: 1.5, '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
-        >
-            <ListItemIcon sx={{ minWidth: 'auto !important' }}><EditIcon fontSize="small" sx={{ color: 'cyan.400' }} /></ListItemIcon>
-            <Typography variant="body2">Rename Chat</Typography>
-        </MenuItem>
-        <MenuItem 
-            onClick={() => handleOpenDeleteConfirmDialog(openMenuId!)}
-            sx={{ py: 1.5, px: 2, gap: 1.5, color: 'error.main', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
-        >
-            <ListItemIcon sx={{ minWidth: 'auto !important' }}><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
-            <Typography variant="body2">Delete Chat</Typography>
-        </MenuItem>
-      </Menu>
-
-      <Dialog open={openRenameDialog} onClose={handleCloseRenameDialog} PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1 } }}>
-            <DialogTitle sx={{ fontWeight: 'bold' }}>Rename Chat</DialogTitle>
-            <DialogContent>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    label="New Title"
-                    fullWidth
-                    variant="outlined"
-                    value={renameConversationTitle}
-                    onChange={(e) => setRenameConversationTitle(e.target.value)}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            color: 'white',
-                            '& fieldset': { borderColor: 'rgba(255,255,255,0.2)', borderRadius: '12px' },
-                            '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
-                        },
-                        '& .MuiInputLabel-root': { color: 'gray' }
-                    }}
-                />
-            </DialogContent>
-            <DialogActions sx={{ p: 3 }}>
-                <Button onClick={handleCloseRenameDialog} sx={{ color: 'white' }}>Cancel</Button>
-                <Button onClick={handleRenameConversation} variant="contained" sx={{ bgcolor: 'blue.600', borderRadius: '50px' }}>Save Changes</Button>
-            </DialogActions>
-        </Dialog>
-
-        <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1 } }}>
-            <DialogTitle sx={{ fontWeight: 'bold' }}>Delete Chat?</DialogTitle>
-            <DialogContent>
-                <Typography sx={{ color: 'gray' }}>This will permanently remove this conversation. This action cannot be undone.</Typography>
-            </DialogContent>
-            <DialogActions sx={{ p: 3 }}>
-                <Button onClick={handleCloseDeleteConfirmDialog} sx={{ color: 'white' }}>Cancel</Button>
-                <Button onClick={handleConfirmDeleteConversation} variant="contained" color="error" sx={{ borderRadius: '50px' }}>Delete Permanently</Button>
-            </DialogActions>
-        </Dialog>
     </div>
   );
 };

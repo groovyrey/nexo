@@ -132,6 +132,8 @@ export async function POST(req: Request) {
             });
           }
         } catch (err: any) {
+          console.error("Stream error:", err);
+          await logIncident('STREAM_ERROR', 'POST /api/nexo', err.message);
           sendEvent('error', err.message);
         } finally {
           controller.close();

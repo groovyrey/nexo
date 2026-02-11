@@ -1,13 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { FiLock, FiArrowRight, FiShield } from 'react-icons/fi';
 
 export default function LockedPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.status !== 'locked') {
+          router.replace('/');
+        }
+      } catch (err) {
+        console.error('Failed to check status:', err);
+      }
+    };
+
+    checkStatus();
+    // Also check on focus
+    window.addEventListener('focus', checkStatus);
+    return () => window.removeEventListener('focus', checkStatus);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

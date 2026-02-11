@@ -4,10 +4,17 @@ import IconButton from '@mui/material/IconButton';
 import Switch from '@mui/material/Switch';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
 import { styled } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
+import EditIcon from '@mui/icons-material/Edit';
 import { FiActivity } from 'react-icons/fi';
 
 interface SettingsModalProps {
@@ -25,6 +32,7 @@ interface SettingsModalProps {
   conversationId: string;
   onClearChat: () => void;
   onDeleteChat: () => void;
+  onRenameChat: (newTitle: string) => void;
 }
 
 const LANGUAGES = [
@@ -86,9 +94,17 @@ const IOSSwitch = styled((props: any) => (
   },
 }));
 
-const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClose, settings, onSettingChange, conversationTitle, conversationId, onClearChat, onDeleteChat }) => {
+const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClose, settings, onSettingChange, conversationTitle, conversationId, onClearChat, onDeleteChat, onRenameChat }) => {
   const [isLangMenuOpen, setIsLangMenuOpen] = React.useState(false);
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = React.useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
+  const [newTitle, setNewTitle] = React.useState(conversationTitle);
   const langMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setNewTitle(conversationTitle);
+  }, [conversationTitle]);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -115,6 +131,7 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
   const currentLangLabel = LANGUAGES.find(l => l.value === (settings.voiceLanguage || 'en-US'))?.label || 'English (US)';
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <>
@@ -148,9 +165,17 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
             <section>
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">Conversation Info</h3>
               <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider font-bold">Title</span>
-                  <span className="text-white font-medium text-lg">{conversationTitle}</span>
+                <div className="flex justify-between items-start">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 text-xs uppercase tracking-wider font-bold">Title</span>
+                    <span className="text-white font-medium text-lg">{conversationTitle}</span>
+                  </div>
+                  <IconButton 
+                    onClick={() => setIsRenameDialogOpen(true)}
+                    sx={{ color: 'blue.400', bgcolor: 'blue.600/10', '&:hover': { bgcolor: 'blue.600/20' } }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-gray-400 text-xs uppercase tracking-wider font-bold">ID</span>
@@ -313,7 +338,7 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
               <h3 className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4 ml-1">Danger Zone</h3>
               <div className="space-y-3">
                  <button 
-                    onClick={onClearChat}
+                    onClick={() => setIsClearConfirmOpen(true)}
                     className="w-full flex items-center justify-between p-5 rounded-3xl bg-red-500/[0.05] border border-red-500/10 hover:bg-red-500/10 transition-colors group"
                  >
                     <div className="flex items-center gap-3">
@@ -328,7 +353,7 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
                  </button>
 
                  <button 
-                    onClick={onDeleteChat}
+                    onClick={() => setIsDeleteConfirmOpen(true)}
                     className="w-full flex items-center justify-between p-5 rounded-3xl bg-red-500/[0.05] border border-red-500/10 hover:bg-red-500/10 transition-colors group"
                  >
                     <div className="flex items-center gap-3">
@@ -375,6 +400,106 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
       </>
       )}
     </AnimatePresence>
+    
+    {/* Confirmation Dialogs */}
+    <Dialog 
+      open={isClearConfirmOpen} 
+      onClose={() => setIsClearConfirmOpen(false)} 
+      sx={{ zIndex: 3000 }}
+      PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1, border: '1px solid rgba(255,255,255,0.1)' } }}
+    >
+      <DialogTitle sx={{ fontWeight: 'bold' }}>Clear Chat History?</DialogTitle>
+      <DialogContent>
+        <Typography sx={{ color: 'gray' }}>Are you sure you want to clear all messages? This cannot be undone.</Typography>
+      </DialogContent>
+      <DialogActions sx={{ p: 3 }}>
+        <Button onClick={() => setIsClearConfirmOpen(false)} sx={{ color: 'white' }}>Cancel</Button>
+        <Button 
+          onClick={() => {
+            onClearChat();
+            setIsClearConfirmOpen(false);
+          }} 
+          variant="contained" 
+          color="error" 
+          sx={{ borderRadius: '50px' }}
+        >
+          Clear History
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+    <Dialog 
+      open={isDeleteConfirmOpen} 
+      onClose={() => setIsDeleteConfirmOpen(false)} 
+      sx={{ zIndex: 3000 }}
+      PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1, border: '1px solid rgba(255,255,255,0.1)' } }}
+    >
+      <DialogTitle sx={{ fontWeight: 'bold' }}>Delete Conversation?</DialogTitle>
+      <DialogContent>
+        <Typography sx={{ color: 'gray' }}>This will permanently remove this conversation and all its messages. This action cannot be undone.</Typography>
+      </DialogContent>
+      <DialogActions sx={{ p: 3 }}>
+        <Button onClick={() => setIsDeleteConfirmOpen(false)} sx={{ color: 'white' }}>Cancel</Button>
+        <Button 
+          onClick={() => {
+            onDeleteChat();
+            setIsDeleteConfirmOpen(false);
+          }} 
+          variant="contained" 
+          color="error" 
+          sx={{ borderRadius: '50px' }}
+        >
+          Delete Permanently
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+    <Dialog 
+      open={isRenameDialogOpen} 
+      onClose={() => setIsRenameDialogOpen(false)} 
+      sx={{ zIndex: 3000 }}
+      PaperProps={{ sx: { bgcolor: '#121212', color: 'white', borderRadius: '24px', p: 1, border: '1px solid rgba(255,255,255,0.1)' } }}
+    >
+      <DialogTitle sx={{ fontWeight: 'bold' }}>Rename Chat</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          label="New Title"
+          fullWidth
+          variant="outlined"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          sx={{
+            mt: 1,
+            '& .MuiOutlinedInput-root': {
+              color: 'white',
+              '& fieldset': { borderColor: 'rgba(255,255,255,0.2)', borderRadius: '12px' },
+              '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
+              '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+            },
+            '& .MuiInputLabel-root': { color: 'gray' },
+            '& .MuiInputLabel-root.Mui-focused': { color: '#3b82f6' }
+          }}
+        />
+      </DialogContent>
+      <DialogActions sx={{ p: 3 }}>
+        <Button onClick={() => setIsRenameDialogOpen(false)} sx={{ color: 'white' }}>Cancel</Button>
+        <Button 
+          onClick={() => {
+            if (newTitle.trim() && newTitle.trim() !== conversationTitle) {
+              onRenameChat(newTitle.trim());
+            }
+            setIsRenameDialogOpen(false);
+          }} 
+          variant="contained" 
+          sx={{ bgcolor: 'blue.600', borderRadius: '50px', '&:hover': { bgcolor: 'blue.700' } }}
+        >
+          Save Changes
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 });
 
