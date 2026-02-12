@@ -21,6 +21,7 @@
     "autoprefixer": "^10.4.24",
     "firebase": "^12.8.0",
     "framer-motion": "^12.31.0",
+    "i": "^0.3.7",
     "katex": "^0.16.28",
     "next": "16.1.6",
     "openai": "^4.0.0",

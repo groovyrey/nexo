@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { InferenceClient } from '@huggingface/inference'; 
-import { get } from '@vercel/edge-config';
 import { tools } from '../../../lib/tools'; 
 import { getSystemPrompt } from '../../../lib/systemPrompt'; 
 import { toolDefinitions } from '../../../lib/toolDefinitions'; // New import
@@ -9,27 +8,12 @@ export async function POST(req: Request) {
   try {
     const { messages, userName, userId, conversationId, userLocation, userLocale }: { messages: any[], userName: string, userId: string, conversationId: string, userLocation?: string, userLocale?: string } = await req.json();
 
-    // Fetch HF Token and AI Model from Edge Config
-    let hfToken = process.env.HF_TOKEN;
-    let aiModel = "moonshotai/Kimi-K2.5";
-    
-    try {
-      const isDev = process.env.NODE_ENV === 'development';
-      const tokenKey = isDev ? 'dev_hf_token' : 'pro_hf_token';
-      
-      const [configToken, configModel] = await Promise.all([
-        get<string>(tokenKey),
-        get<string>('ai_model')
-      ]);
-
-      if (configToken) hfToken = configToken;
-      if (configModel) aiModel = configModel;
-    } catch (e) {
-      console.error("Edge Config fetch failed, using fallback values:", e);
-    }
+    // Fetch HF Token and AI Model from environment variables
+    const hfToken = process.env.HF_TOKEN;
+    const aiModel = process.env.AI_MODEL || "moonshotai/Kimi-K2.5";
 
     if (!hfToken) {
-      throw new Error("Hugging Face token is not set. Please check Edge Config or HF_TOKEN environment variable.");
+      throw new Error("Hugging Face token is not set. Please set the HF_TOKEN environment variable.");
     }
 
     const hf = new InferenceClient(hfToken);
