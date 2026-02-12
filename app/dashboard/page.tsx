@@ -1,6 +1,11 @@
 "use client";
 import React from 'react';
-import { FiUser, FiMail, FiKey, FiActivity, FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import KeyIcon from '@mui/icons-material/Key';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import MessageIcon from '@mui/icons-material/Message';
 import Link from 'next/link';
 import { useAuthContext } from '../../lib/context';
 import Image from 'next/image';
@@ -33,7 +38,7 @@ const DashboardPage = () => {
                 '&:hover': { bgcolor: 'white/20' } 
             }}
            >
-             <FiArrowLeft />
+             <ArrowBackIcon />
            </IconButton>
       </div>
 
@@ -72,7 +77,7 @@ const DashboardPage = () => {
             <div className="text-center w-full space-y-6">
                 <div>
                     <h2 className="text-3xl font-bold text-white mb-2 tracking-tight flex items-center justify-center gap-3">
-                        <FiUser className="text-blue-400" />
+                        <PersonIcon className="text-blue-400" />
                         {user.displayName || 'Anonymous User'}
                     </h2>
                     <div className="h-1 w-12 bg-blue-500 mx-auto rounded-full"></div>
@@ -82,14 +87,14 @@ const DashboardPage = () => {
                     <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
                         <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1 block">Email Address</label>
                         <div className="flex items-center gap-2 text-gray-200 font-medium">
-                            <FiMail className="text-blue-400 flex-shrink-0" />
+                            <EmailIcon className="text-blue-400 flex-shrink-0" />
                             <span className="truncate">{user.email}</span>
                         </div>
                     </div>
                     <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
                         <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1 block">Account ID</label>
                         <div className="flex items-center gap-2 text-gray-500 font-mono text-xs">
-                            <FiKey className="flex-shrink-0" />
+                            <KeyIcon className="flex-shrink-0 !text-xs" />
                             <span className="truncate">{user.uid}</span>
                         </div>
                     </div>
@@ -103,7 +108,7 @@ const DashboardPage = () => {
                 <Button
                     variant="contained"
                     fullWidth
-                    startIcon={<FiMessageSquare />}
+                    startIcon={<MessageIcon />}
                     sx={{ 
                         bgcolor: 'blue.600', 
                         color: 'white', 
@@ -123,7 +128,7 @@ const DashboardPage = () => {
                 <Button
                     variant="outlined"
                     fullWidth
-                    startIcon={<FiActivity />}
+                    startIcon={<ShowChartIcon />}
                     sx={{ 
                         color: 'white', 
                         borderColor: 'white/20', 

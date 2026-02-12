@@ -5,7 +5,13 @@ import { signInWithGoogle } from "@/lib/auth";
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Image from 'next/image';
-import { FiArrowRight, FiMessageSquare, FiLayers, FiUser, FiTwitter, FiLinkedin, FiGithub } from 'react-icons/fi';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ForumIcon from '@mui/icons-material/Forum';
+import LayersIcon from '@mui/icons-material/Layers';
+import PersonIcon from '@mui/icons-material/Person';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import ToolsDisplay from './components/ToolsDisplay'; // Import ToolsDisplay
 import { userFriendlyTools } from '../lib/userFriendlyTools'; // Import userFriendlyTools
 
@@ -51,7 +57,7 @@ export default function HomeClient() {
                 }}
               >
                 <span className="font-bold">Start Chatting</span>
-                <FiArrowRight className="ml-2 transition-transform group-hover:translate-x-1" />
+                <ArrowForwardIcon className="ml-2 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
           </div>
@@ -68,7 +74,7 @@ export default function HomeClient() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="group p-10 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-all duration-300">
                 <div className="w-16 h-16 mb-8 flex items-center justify-center bg-indigo-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                  <FiMessageSquare className="text-indigo-400 text-3xl" />
+                  <ForumIcon className="text-indigo-400 text-3xl" />
                 </div>
                 <h4 className="text-2xl font-bold mb-4">Intelligent</h4>
                 <p className="text-gray-400 leading-relaxed">Engage in natural, context-aware discussions powered by state-of-the-art models.</p>
@@ -76,7 +82,7 @@ export default function HomeClient() {
               
               <div className="group p-10 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-all duration-300">
                 <div className="w-16 h-16 mb-8 flex items-center justify-center bg-pink-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                  <FiLayers className="text-pink-400 text-3xl" />
+                  <LayersIcon className="text-pink-400 text-3xl" />
                 </div>
                 <h4 className="text-2xl font-bold mb-4">Versatile</h4>
                 <p className="text-gray-400 leading-relaxed">From web searching to data processing, Nexo adapts to your specific needs.</p>
@@ -84,7 +90,7 @@ export default function HomeClient() {
 
               <div className="group p-10 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-all duration-300">
                 <div className="w-16 h-16 mb-8 flex items-center justify-center bg-yellow-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                  <FiUser className="text-yellow-400 text-3xl" />
+                  <PersonIcon className="text-yellow-400 text-3xl" />
                 </div>
                 <h4 className="text-2xl font-bold mb-4">Focused</h4>
                 <p className="text-gray-400 leading-relaxed">Each session is a fresh start, maintaining deep context within your current conversation.</p>
@@ -162,9 +168,9 @@ export default function HomeClient() {
             </div>
 
             <div className="flex gap-6 order-1 md:order-2">
-              <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white"><FiTwitter size={20} /></a>
-              <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white"><FiLinkedin size={20} /></a>
-              <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white"><FiGithub size={20} /></a>
+              <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white"><TwitterIcon sx={{ fontSize: 20 }} /></a>
+              <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white"><LinkedInIcon sx={{ fontSize: 20 }} /></a>
+              <a href="#" className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white"><GitHubIcon sx={{ fontSize: 20 }} /></a>
             </div>
           </div>
         </footer>

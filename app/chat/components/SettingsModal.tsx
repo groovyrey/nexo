@@ -15,7 +15,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
 import EditIcon from '@mui/icons-material/Edit';
-import { FiActivity } from 'react-icons/fi';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -401,7 +401,7 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
                       onClick={() => window.open('/status', '_blank')}
                       className="w-full py-3 rounded-xl bg-white/5 border border-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                     >
-                      <FiActivity size={14} className="text-blue-500" />
+                      <ShowChartIcon sx={{ fontSize: 14, color: 'blue.500' }} />
                       Check System Status
                     </button>
                 </div>

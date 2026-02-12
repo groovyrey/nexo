@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Typography, Box, Paper, LinearProgress, Chip, Card, CardContent, Tabs, Tab, IconButton } from '@mui/material';
-import { FiMonitor, FiArrowLeft, FiActivity, FiMessageCircle, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import MessageIcon from '@mui/icons-material/Message';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import PollIcon from '@mui/icons-material/Poll';
+import MonitorIcon from '@mui/icons-material/Monitor';
 import { useAuthContext } from '@/lib/context';
 import { getConversationList, getMessageStats, MessageStats, ConversationMetadata } from '@/lib/realtimedb';
 import { formatTimeAgo } from '@/lib/timeUtils';
@@ -87,10 +92,10 @@ const UsagePage = () => {
       <Box sx={{ maxWidth: 900, mx: 'auto', position: 'relative', zIndex: 10 }}>
         <header className="flex items-center justify-between mb-12">
             <IconButton onClick={() => router.back()} sx={{ color: 'white', bgcolor: 'white/5', '&:hover': { bgcolor: 'white/10' } }}>
-                <FiArrowLeft />
+                <ArrowBackIcon />
             </IconButton>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-3">
-                <FiActivity className="text-blue-500" />
+                <ShowChartIcon sx={{ color: 'blue.500' }} />
                 Usage Analytics
             </h1>
             <div className="w-10"></div>
@@ -117,9 +122,9 @@ const UsagePage = () => {
                     '& .MuiTabs-indicator': { height: 4, borderRadius: '4px 4px 0 0', bgcolor: 'blue.600' }
                 }}
             >
-                <Tab label="Conversations" icon={<FiMessageCircle />} iconPosition="start" />
-                <Tab label="Messages" icon={<FiBarChart2 />} iconPosition="start" />
-                <Tab label="Trends" icon={<FiTrendingUp />} iconPosition="start" />
+                <Tab label="Conversations" icon={<MessageIcon />} iconPosition="start" />
+                <Tab label="Messages" icon={<PollIcon />} iconPosition="start" />
+                <Tab label="Trends" icon={<TrendingUpIcon />} iconPosition="start" />
             </Tabs>
 
             <Box sx={{ p: { xs: 2, md: 6 } }}>

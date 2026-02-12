@@ -4,7 +4,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from "next/image";
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Divider } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { FiLogIn, FiLogOut, FiMessageSquare, FiLayout, FiActivity, FiCode } from "react-icons/fi";
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import MessageIcon from '@mui/icons-material/Message';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import CodeIcon from '@mui/icons-material/Code';
 import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle, signOutWithGoogle } from "@/lib/auth";
 import { useNotification } from "@/lib/notification"; // Import useNotification
@@ -93,7 +98,7 @@ const Navbar = () => {
                 variant="text"
                 color="inherit"
                 onClick={() => router.push('/dashboard')}
-                startIcon={<FiLayout size={18} />}
+                startIcon={<DashboardIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   px: 2,
                   color: pathname === '/dashboard' ? 'primary.main' : 'white',
@@ -106,7 +111,7 @@ const Navbar = () => {
                 variant="text"
                 color="inherit"
                 onClick={() => router.push('/chat')}
-                startIcon={<FiMessageSquare size={18} />}
+                startIcon={<MessageIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   px: 2,
                   color: pathname === '/chat' ? 'primary.main' : 'white',
@@ -151,6 +156,7 @@ const Navbar = () => {
                   showNotification("Failed to sign in.", "error");
                 }
               }}
+              startIcon={<LoginIcon />}
             >
               Sign in with Google
             </Button>
@@ -226,7 +232,7 @@ const Navbar = () => {
                   selected={pathname === '/dashboard'}
                   sx={{ '&.Mui-selected': { bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } } }}
                 >
-                  <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiLayout size={20} /></ListItemIcon>
+                  <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><DashboardIcon sx={{ fontSize: 20 }} /></ListItemIcon>
                   <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: 500 }} />
                 </ListItemButton>
                 
@@ -235,7 +241,7 @@ const Navbar = () => {
                   selected={pathname === '/dashboard/usage'}
                   sx={{ ml: 2, '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.1)' } }}
                 >
-                  <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiActivity size={18} /></ListItemIcon>
+                  <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><ShowChartIcon sx={{ fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Usage Stats" primaryTypographyProps={{ fontSize: '0.9rem' }} />
                 </ListItemButton>
 
@@ -243,7 +249,7 @@ const Navbar = () => {
                   onClick={() => { router.push('/chat'); setDrawerOpen(false); }}
                   selected={pathname === '/chat'}
                 >
-                  <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiMessageSquare size={20} /></ListItemIcon>
+                  <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><MessageIcon sx={{ fontSize: 20 }} /></ListItemIcon>
                   <ListItemText primary="Chat" primaryTypographyProps={{ fontWeight: 500 }} />
                 </ListItemButton>
               </>
@@ -252,14 +258,14 @@ const Navbar = () => {
               onClick={() => { router.push('/docs'); setDrawerOpen(false); }}
               selected={pathname === '/docs'}
             >
-              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiCode size={20} /></ListItemIcon>
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><CodeIcon sx={{ fontSize: 20 }} /></ListItemIcon>
               <ListItemText primary="Documentation" primaryTypographyProps={{ fontWeight: 500 }} />
             </ListItemButton>
             <ListItemButton 
               onClick={() => { router.push('/status'); setDrawerOpen(false); }}
               selected={pathname === '/status'}
             >
-              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><FiActivity size={20} /></ListItemIcon>
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><ShowChartIcon sx={{ fontSize: 20 }} /></ListItemIcon>
               <ListItemText primary="System Status" primaryTypographyProps={{ fontWeight: 500 }} />
             </ListItemButton>
           </List>
@@ -270,7 +276,7 @@ const Navbar = () => {
                 fullWidth
                 variant="outlined"
                 color="error"
-                startIcon={<FiLogOut />}
+                startIcon={<LogoutIcon />}
                 onClick={async () => {
                   await signOutWithGoogle();
                   setDrawerOpen(false);

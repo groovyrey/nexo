@@ -2,7 +2,23 @@
 
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import * as FiIcons from 'react-icons/fi';
+import SearchIcon from '@mui/icons-material/Search';
+import MemoryIcon from '@mui/icons-material/Memory';
+import CloudIcon from '@mui/icons-material/Cloud';
+import PublicIcon from '@mui/icons-material/Public';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import BuildIcon from '@mui/icons-material/Build';
+
+const iconMap: Record<string, any> = {
+  FiSearch: SearchIcon,
+  FiCpu: MemoryIcon,
+  FiCloud: CloudIcon,
+  FiGlobe: PublicIcon,
+  FiCalendar: CalendarMonthIcon,
+  FiZap: FlashOnIcon,
+  FiTool: BuildIcon
+};
 
 interface Tool {
   name: string;
@@ -37,7 +53,7 @@ export default function ToolsDisplay({ toolsList }: ToolsDisplayProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {toolsList.map((tool, index) => {
-            const IconComponent = (FiIcons as any)[tool.icon] || FiIcons.FiTool;
+            const IconComponent = iconMap[tool.icon] || BuildIcon;
             return (
               <div 
                 key={index}
@@ -45,7 +61,7 @@ export default function ToolsDisplay({ toolsList }: ToolsDisplayProps) {
               >
                 {/* Icon Container */}
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-500/20 flex items-center justify-center mb-6 group-hover:from-blue-400/30 group-hover:to-indigo-500/30 transition-colors">
-                  <IconComponent className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
+                  <IconComponent className="text-blue-400 !text-2xl group-hover:scale-110 transition-transform" />
                 </div>
 
                 <h4 className="text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors">

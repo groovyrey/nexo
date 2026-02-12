@@ -6,7 +6,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { FiUser } from 'react-icons/fi';
+import PersonIcon from '@mui/icons-material/Person';
 import Image from 'next/image';
 import ButtonBase from '@mui/material/ButtonBase';
 import Menu from '@mui/material/Menu';
@@ -207,118 +207,346 @@ const WeatherDisplay = ({ data }: { data: any }) => {
   );
 };
 
-const MarkdownRenderer = ({ content }: { content: string }) => (
-  <ReactMarkdown
-    className="prose prose-invert max-w-none"
-    remarkPlugins={[remarkGfm, remarkMath]}
-    rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeKatex]}
-    components={{
-      a: ({ node, ...props }) => (
-        <MuiLink
-          {...props}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={{ color: 'info.main', '&:hover': { textDecoration: 'underline' } }}
-        />
-      ),
-      p: ({ node, ...props }) => <Typography variant="body1" sx={{ mb: 2, '&:last-child': { mb: 0 }, overflowWrap: 'break-word' }} {...props} />,
-      li: ({ node, ...props }) => <Typography component="li" variant="body2" sx={{ mb: 1, '&:last-child': { mb: 0 } }} {...props} />,
-      code: ({node, className, children, ...props}) => {
-        const match = /language-(\w+)/.exec(className || '')
-        return match ? (
-          <Paper elevation={0} sx={{ bgcolor: '#1e1e1e', borderRadius: '8px', my: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1, borderBottom: '1px solid rgba(68, 68, 68, 0.7)' }}>
-              <Typography variant="caption" sx={{ color: 'grey.300' }}>
-                {match[1]}
-              </Typography>
-            </Box>
-            <pre style={{ padding: '16px', overflowX: 'auto', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-              <code style={{ wordBreak: 'break-word' }} className={`!bg-transparent text-sm ${className}`} {...props}>
-                {children}
-              </code>
-            </pre>
-          </Paper>
-        ) : (
-          <Typography
-            component="code"
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  // Helper to copy code to clipboard
+  const handleCopyCode = useCallback((code: string) => {
+    navigator.clipboard.writeText(code);
+  }, []);
+
+  return (
+    <ReactMarkdown
+      className="prose prose-invert max-w-none"
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeKatex]}
+      components={{
+        a: ({ node, ...props }) => (
+          <MuiLink
+            {...props}
+            target="_blank"
+            rel="noopener noreferrer"
             sx={{
-              bgcolor: 'rgba(90, 90, 90, 0.9)',
-              borderRadius: '4px',
-              px: 0.5,
-              py: 0.25,
-              fontSize: '0.875rem',
-              fontFamily: 'monospace',
+              color: '#38bdf8', // sky-400
+              textDecoration: 'none',
+              borderBottom: '1px solid transparent',
+              transition: 'all 0.2s ease-in-out',
+              fontWeight: 500,
+              '&:hover': {
+                color: '#7dd3fc', // sky-300
+                borderBottomColor: '#7dd3fc',
+                textShadow: '0 0 8px rgba(56, 189, 248, 0.4)',
+              }
+            }}
+          />
+        ),
+        p: ({ node, ...props }) => (
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              mb: 2, 
+              lineHeight: 1.7, 
+              color: 'rgba(255, 255, 255, 0.9)',
+              '&:last-child': { mb: 0 },
+              overflowWrap: 'break-word' 
+            }} 
+            {...props} 
+          />
+        ),
+        ul: ({ node, ...props }) => (
+          <Box component="ul" sx={{ pl: 2, mb: 2, listStyleType: 'none' }} {...props} />
+        ),
+        ol: ({ node, ...props }) => (
+          <Box component="ol" sx={{ pl: 2, mb: 2, listStyleType: 'none', counterReset: 'item' }} {...props} />
+        ),
+        li: ({ node, ...props }) => {
+           // Check parent to determine marker style (bullet vs number)
+           const isOrdered = node.position?.start.line; // Crude check, but often context is needed.
+           // Actually, simpler to just use CSS counters for ordered lists or a dot for unordered.
+           // Since ReactMarkdown renders ul/ol separately, we can't easily know strictly here without context, 
+           // but we can default to a style that works for both or rely on the parent styling.
+           // For safely, let's use a simple dot for UL and rely on browser for OL but styled.
+           return (
+            <Box component="li" sx={{ 
+              mb: 1, 
+              display: 'flex', 
+              alignItems: 'flex-start',
+              gap: 1.5,
+              '&:last-child': { mb: 0 } 
+            }}>
+              <Box sx={{ 
+                mt: 0.8,
+                minWidth: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)', // blue-500 to cyan-500
+                boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)'
+              }} />
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.6 }} {...props} />
+            </Box>
+          );
+        },
+        code: ({node, className, children, ...props}) => {
+          const match = /language-(\w+)/.exec(className || '');
+          const isInline = !match && !String(children).includes('\n');
+          const codeString = String(children).replace(/\n$/, '');
+
+          if (isInline) {
+            return (
+              <Typography
+                component="code"
+                sx={{
+                  bgcolor: 'rgba(56, 189, 248, 0.1)', // sky-500/10
+                  color: '#7dd3fc', // sky-300
+                  border: '1px solid rgba(56, 189, 248, 0.2)',
+                  borderRadius: '6px',
+                  px: 0.8,
+                  py: 0.2,
+                  fontSize: '0.85em',
+                  fontFamily: '"Fira Code", monospace',
+                  fontWeight: 500,
+                  boxShadow: '0 0 10px rgba(56, 189, 248, 0.05) inset'
+                }}
+                {...props}
+              >
+                {children}
+              </Typography>
+            );
+          }
+
+          return (
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                bgcolor: '#0f1117', // Very dark blue/gray
+                borderRadius: '16px', 
+                my: 3, 
+                border: '1px solid rgba(255, 255, 255, 0.1)', 
+                overflow: 'hidden',
+                boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.5)' 
+              }}
+            >
+              {/* Code Header */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                px: 2.5, 
+                py: 1.5, 
+                bgcolor: 'rgba(255, 255, 255, 0.03)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+              }}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ w: 3, h: 3, borderRadius: '50%', bgcolor: '#ef4444', opacity: 0.8 }} /> {/* Red */}
+                  <Box sx={{ w: 3, h: 3, borderRadius: '50%', bgcolor: '#eab308', opacity: 0.8 }} /> {/* Yellow */}
+                  <Box sx={{ w: 3, h: 3, borderRadius: '50%', bgcolor: '#22c55e', opacity: 0.8 }} /> {/* Green */}
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="caption" sx={{ color: 'grey.500', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                    {match ? match[1] : 'text'}
+                  </Typography>
+                  <IconButton 
+                    size="small" 
+                    onClick={() => handleCopyCode(codeString)}
+                    sx={{ 
+                      color: 'grey.500', 
+                      p: 0.5,
+                      '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.1)' } 
+                    }}
+                  >
+                    <ContentCopyIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </Box>
+              </Box>
+              
+              <Box sx={{ position: 'relative' }}>
+                <pre style={{ 
+                  padding: '20px', 
+                  margin: 0, 
+                  overflowX: 'auto', 
+                  fontFamily: '"Fira Code", monospace', 
+                  fontSize: '0.875rem',
+                  lineHeight: 1.6,
+                  background: 'transparent'
+                }}>
+                  <code 
+                    className={className} 
+                    style={{ background: 'transparent' }} 
+                    {...props}
+                  >
+                    {children}
+                  </code>
+                </pre>
+              </Box>
+            </Paper>
+          );
+        },
+        table: ({node, ...props}) => (
+          <TableContainer 
+            component={Paper} 
+            sx={{ 
+              my: 4, 
+              bgcolor: 'rgba(255, 255, 255, 0.02)', 
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)' 
+            }}
+          >
+            <Table sx={{ minWidth: 650 }} aria-label="simple table" {...props} />
+          </TableContainer>
+        ),
+        thead: ({node, ...props}) => (
+          <TableHead sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)' }} {...props} />
+        ),
+        th: ({node, align, ...props}) => (
+          <TableCell
+            align="left"
+            sx={{
+              px: 3,
+              py: 2,
+              textAlign: 'left',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: 'cyan.100', // Matches theme accent
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             }}
             {...props}
-          >
-            {children}
-          </Typography>
-        )
-      },
-      table: ({node, ...props}) => (
-        <TableContainer component={Paper} sx={{ my: 4, bgcolor: 'transparent', boxShadow: 'none' }}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table" {...props} />
-        </TableContainer>
-      ),
-      thead: ({node, ...props}) => <TableHead sx={{ bgcolor: 'rgba(255, 255, 255, 0.15)' }} {...props} />,
-      th: ({node, align, ...props}) => ( // Destructure align here
-        <TableCell
-          align="left" // Explicitly set align to a valid value
-          sx={{
-            px: 3,
-            py: 1.5,
-            textAlign: 'left',
-            fontSize: '0.75rem',
-            fontWeight: 'medium',
-            color: 'grey.300',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            borderBottom: '1px solid rgba(90, 90, 90, 0.7)',
-          }}
-          {...props} // Pass remaining props
-        />
-      ),
-      tbody: ({node, ...props}) => <TableBody sx={{ bgcolor: 'rgba(255, 255, 255, 0.08)', '& .MuiTableRow-root:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' } }} {...props} />,
-      tr: ({node, ...props}) => <TableRow sx={{ borderBottom: '1px solid rgba(90, 90, 90, 0.7)' }} {...props} />,
-      td: ({node, align, ...props}) => <TableCell align="left" sx={{ px: 3, py: 2, whiteSpace: 'nowrap', fontSize: '0.875rem', color: 'grey.200' }} {...props} />,
-      blockquote: ({node, ...props}) => (
-        <Box component="blockquote" sx={{ borderLeft: '4px solid', borderColor: 'info.light', bgcolor: 'rgba(255, 255, 255, 0.08)', p: 2, my: 2 }} {...props} />
-      ),
-      h1: ({node, ...props}) => <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: 'grey.50', borderBottom: '2px solid', borderColor: 'info.light', pb: 1 }} {...props} />,
-      h2: ({node, ...props}) => <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2, color: 'grey.50', borderBottom: '1px solid', borderColor: 'info.light', pb: 1 }} {...props} />,
-      h3: ({node, ...props}) => <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5, color: 'grey.50' }} {...props} />,
-      h4: ({node, ...props}) => <Typography variant="subtitle1" sx={{ fontWeight: 'semibold', mb: 1.5, color: 'grey.50' }} {...props} />,
-      h5: ({node, ...props}) => <Typography variant="subtitle2" sx={{ fontWeight: 'semibold', mb: 1, color: 'grey.50' }} {...props} />,
-      h6: ({node, ...props}) => <Typography variant="overline" sx={{ fontWeight: 'semibold', mb: 1, color: 'grey.50', display: 'block' }} {...props} />,
-      hr: ({node, ...props}) => <Divider sx={{ my: 3, borderColor: 'grey.600', borderStyle: 'dashed' }} {...props} />,
-      img: ({node, width, height, src, alt, ...restProps}) => {
-        const imgWidth = typeof width === 'string' ? parseInt(width, 10) : (width || 500);
-        const imgHeight = typeof height === 'string' ? parseInt(height, 10) : (height || 300);
-        const imgSrc = typeof src === 'string' ? src : ''; // Ensure src is a string, provide fallback
-        const imgAlt = typeof alt === 'string' ? alt : ''; // Ensure alt is a string, provide fallback
+          />
+        ),
+        tbody: ({node, ...props}) => <TableBody sx={{ '& .MuiTableRow-root:last-child td': { borderBottom: 0 } }} {...props} />,
+        tr: ({node, ...props}) => (
+          <TableRow 
+            sx={{ 
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+              transition: 'background-color 0.2s',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' } 
+            }} 
+            {...props} 
+          />
+        ),
+        td: ({node, align, ...props}) => (
+          <TableCell align="left" sx={{ px: 3, py: 2, fontSize: '0.9rem', color: 'grey.300', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }} {...props} />
+        ),
+        blockquote: ({node, ...props}) => (
+          <Box 
+            component="blockquote" 
+            sx={{ 
+              position: 'relative',
+              borderLeft: '4px solid transparent',
+              borderImage: 'linear-gradient(to bottom, #3b82f6, #06b6d4) 1',
+              bgcolor: 'rgba(30, 41, 59, 0.4)', // slate-800/40
+              borderRadius: '0 12px 12px 0',
+              p: 3,
+              my: 3,
+              fontStyle: 'italic',
+              color: 'grey.300'
+            }} 
+            {...props} 
+          />
+        ),
+        h1: ({node, ...props}) => (
+          <Typography 
+            variant="h3" 
+            component="h1"
+            sx={{ 
+              fontWeight: 800, 
+              mb: 3, 
+              mt: 4,
+              background: 'linear-gradient(to right, #ffffff, #94a3b8)', // white to slate-400
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+              '&:first-of-type': { mt: 0 }
+            }} 
+            {...props} 
+          />
+        ),
+        h2: ({node, ...props}) => (
+          <Typography 
+            variant="h4" 
+            component="h2"
+            sx={{ 
+              fontWeight: 700, 
+              mb: 2.5, 
+              mt: 3.5, 
+              color: 'white',
+              letterSpacing: '-0.01em',
+              display: 'flex',
+              alignItems: 'center',
+              '&:after': {
+                content: '""',
+                flex: 1,
+                height: '1px',
+                ml: 3,
+                background: 'linear-gradient(90deg, rgba(59, 130, 246, 0.5) 0%, transparent 100%)'
+              }
+            }} 
+            {...props} 
+          />
+        ),
+        h3: ({node, ...props}) => (
+          <Typography variant="h5" component="h3" sx={{ fontWeight: 600, mb: 2, mt: 3, color: 'cyan.50' }} {...props} />
+        ),
+        h4: ({node, ...props}) => (
+          <Typography variant="h6" component="h4" sx={{ fontWeight: 600, mb: 1.5, mt: 2.5, color: 'blue.100' }} {...props} />
+        ),
+        h5: ({node, ...props}) => <Typography variant="subtitle1" component="h5" sx={{ fontWeight: 600, mb: 1, mt: 2, color: 'grey.200' }} {...props} />,
+        h6: ({node, ...props}) => <Typography variant="overline" component="h6" sx={{ fontWeight: 700, mb: 1, mt: 2, color: 'grey.400', letterSpacing: '0.1em' }} {...props} />,
+        hr: ({node, ...props}) => (
+          <Divider sx={{ my: 4, borderColor: 'rgba(255, 255, 255, 0.1)', borderStyle: 'dashed' }} {...props} />
+        ),
+        img: ({node, width, height, src, alt, ...restProps}) => {
+          const imgWidth = typeof width === 'string' ? parseInt(width, 10) : (width || 800);
+          const imgHeight = typeof height === 'string' ? parseInt(height, 10) : (height || 450);
+          const imgSrc = typeof src === 'string' ? src : '';
+          const imgAlt = typeof alt === 'string' ? alt : '';
 
-        return (
-          <Box sx={{ my: 2 }}>
-            <Image
-              layout="responsive"
-              width={imgWidth}
-              height={imgHeight}
-              src={imgSrc}
-              alt={imgAlt}
-              objectFit="contain"
-              className="rounded-lg shadow-lg"
-              {...restProps}
-            />
-          </Box>
-        );
-      },
-      details: ({node, ...props}) => <details className="bg-white/5 rounded-lg border border-white/20 p-4 my-2" {...props} />,
-      summary: ({node, ...props}) => <summary className="font-semibold text-cyan-200 cursor-pointer hover:text-cyan-100" {...props} />,
-    }}
-  >
-    {content}
-  </ReactMarkdown>
-);
+          return (
+            <Box sx={{ my: 3, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
+              <Image
+                layout="responsive"
+                width={imgWidth}
+                height={imgHeight}
+                src={imgSrc}
+                alt={imgAlt}
+                objectFit="contain"
+                {...restProps}
+              />
+            </Box>
+          );
+        },
+        details: ({node, ...props}) => (
+          <details 
+            className="group"
+            style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.03)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(255, 255, 255, 0.1)', 
+              padding: '16px', 
+              margin: '16px 0' 
+            }} 
+            {...props} 
+          />
+        ),
+        summary: ({node, ...props}) => (
+          <summary 
+            style={{ 
+              fontWeight: 600, 
+              color: '#38bdf8', 
+              cursor: 'pointer',
+              listStyle: 'none',
+              outline: 'none'
+            }} 
+            {...props} 
+          />
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
 
 const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user, modernize = true, textSize = 'medium', voiceLanguage = 'en-US' }) => {
   const bubbleBg = isUser ? (modernize ? 'bg-blue-600/40 border border-blue-500/30' : 'bg-cyan-500/30') : '';
@@ -556,7 +784,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo(({ msg, isUser, user,
             {user?.photoURL ? (
               <Image src={user.photoURL} alt="User Profile" width={32} height={32} />
             ) : (
-              <FiUser className="text-white" />
+              <PersonIcon className="text-white" />
             )}
           </div>
         </Box>
