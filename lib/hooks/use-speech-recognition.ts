@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+// For on-device STT with Vosk
+// import * as Vosk from 'vosk-browser';
+
 interface UseSpeechRecognitionReturn {
   isListening: boolean;
   transcript: string;
@@ -28,6 +31,13 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}):
   const [hasSupport, setHasSupport] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // NOTE: To implement on-device Vosk STT:
+  // 1. Initialize Vosk model using createModel(modelUrl)
+  // 2. Create a Recognizer
+  // 3. Connect audio stream to the recognizer
+  // 4. Update transcript state from recognizer results
+  const voskRecognizerRef = useRef<any>(null);
+
   const recognitionRef = useRef<any>(null);
   const activeRef = useRef(false);
   const optionsRef = useRef(options);

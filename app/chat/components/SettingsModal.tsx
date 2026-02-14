@@ -26,6 +26,7 @@ interface SettingsModalProps {
     voiceLanguage: string;
     temperature: number;
     textSize: 'small' | 'medium' | 'large';
+    onDeviceAI: boolean;
   };
   onSettingChange: (key: string, value: any) => void;
   conversationTitle: string;
@@ -199,6 +200,17 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
             <section>
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">AI Behavior</h3>
               <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-6">
+                 <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium">On-Device AI</span>
+                    <span className="text-gray-400 text-sm">Run AI locally (Private & Offline)</span>
+                  </div>
+                  <IOSSwitch 
+                    checked={settings.onDeviceAI} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSettingChange('onDeviceAI', e.target.checked)} 
+                  />
+                </div>
+
                  <div className="flex flex-col">
                     <div className="flex justify-between mb-2">
                         <span className="text-white font-medium">Creativity</span>

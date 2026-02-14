@@ -1,13 +1,15 @@
 // lib/tools.ts
-import { webSearch as originalWebSearch } from '../app/api/nexo/tools/webSearch';
 import { writeMemoryToConversation, retrieveConsolidatedMemory } from './realtimedb'; // Updated import
 import { toolDefinitions } from './toolDefinitions';
+
+// Helper to detect if running on client
+const isClient = typeof window !== 'undefined';
 
 export type ToolsType = {
   webSearch: (query: string) => Promise<any>;
   getCurrentTime: () => string;
-  writeMemory: (userId: string, conversationId: string, content: string) => Promise<string>; // Restored original signature
-  retrieveMemory: (userId: string, conversationId: string) => Promise<string | null>; // Updated signature
+  writeMemory: (userId: string, conversationId: string, content: string) => Promise<string>;
+  retrieveMemory: (userId: string, conversationId: string) => Promise<string | null>;
   listTools: () => string;
   getWeather: (location: string) => Promise<string>;
   getCurrentDate: (locale?: string) => string;
@@ -16,7 +18,20 @@ export type ToolsType = {
 
 export const tools: ToolsType = {
   webSearch: async (query: string) => {
-    return originalWebSearch(query);
+    if (isClient) {
+      // Client-side: Call the API route
+      const response = await fetch('/api/nexo/tools', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool: 'Web Search', query }),
+      });
+      if (!response.ok) throw new Error('Web search failed');
+      return response.json();
+    } else {
+      // Server-side: Import dynamically to avoid build errors on client
+      const { webSearch: serverWebSearch } = await import('../app/api/nexo/tools/webSearch');
+      return serverWebSearch(query);
+    }
   },
 
   getCurrentTime: () => new Date().toISOString(),
@@ -31,6 +46,17 @@ export const tools: ToolsType = {
   },
 
   fetchUrl: async (url: string) => {
+    if (isClient) {
+      // Client-side: Use a proxy to avoid CORS
+      const response = await fetch('/api/nexo/tools', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool: 'Fetch URL', url }), // Ensure route handles this
+      });
+      if (!response.ok) throw new Error('Fetch URL failed');
+      return response.text();
+    }
+    
     try {
       const response = await fetch(url);
       if (!response.ok) {
