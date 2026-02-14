@@ -258,8 +258,6 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
           <Box component="ol" sx={{ pl: 2, mb: 2, listStyleType: 'none', counterReset: 'item' }} {...props} />
         ),
         li: ({ node, ...props }) => {
-           // Check parent to determine marker style (bullet vs number)
-           const isOrdered = node.position?.start.line; // Crude check, but often context is needed.
            // Actually, simpler to just use CSS counters for ordered lists or a dot for unordered.
            // Since ReactMarkdown renders ul/ol separately, we can't easily know strictly here without context, 
            // but we can default to a style that works for both or rely on the parent styling.
