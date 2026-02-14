@@ -96,6 +96,7 @@ const StatusPage = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const [version, setVersion] = useState('v0.1.0');
+  const [disabledPages, setDisabledPages] = useState<any[]>([]);
   const [services, setServices] = useState<Record<string, ServiceInfo>>({
     nexoEngine: { status: 'loading', latency: '--' },
     firebaseDb: { status: 'loading', latency: '--' },
@@ -118,6 +119,7 @@ const StatusPage = () => {
           authService: data.services.authService as ServiceInfo,
         }));
         if (data.version) setVersion(data.version);
+        if (data.disabledPages) setDisabledPages(data.disabledPages);
         setLastCheck(new Date());
       }
     } catch (error) {
@@ -280,6 +282,50 @@ const StatusPage = () => {
           />
         </motion.div>
 
+        {disabledPages && disabledPages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-12"
+          >
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+              Scheduled Maintenance & Limited Features
+            </h2>
+            <div className="space-y-4">
+              {disabledPages.map((p, i) => (
+                <Paper
+                  key={i}
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    bgcolor: 'rgba(255,165,0,0.05)',
+                    border: '1px solid rgba(255,165,0,0.1)',
+                    borderRadius: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-xl bg-orange-500/10 text-orange-400">
+                      <FiAlertCircle size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white capitalize">{p.page}</h4>
+                      <p className="text-gray-500 text-xs">{p.reason || 'Temporarily disabled for maintenance.'}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest font-black text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full">
+                    Disabled
+                  </span>
+                </Paper>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         <footer className="mt-20 text-center">
             <p className="text-[10px] text-gray-700 uppercase tracking-[0.4em] font-black mb-4">Nexo Infrastructure • {version}</p>
             <div className="flex justify-center gap-8 text-gray-500 text-xs font-bold uppercase tracking-widest">
@@ -293,16 +339,6 @@ const StatusPage = () => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.01);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.05);
-          border-radius: 10px;
         }
       `}</style>
     </div>

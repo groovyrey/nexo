@@ -12,13 +12,18 @@ export async function GET() {
   };
 
   try {
-    // 0. Fetch version from Edge Config
+    // 0. Fetch config from Edge Config
     let version = 'v0.1.0';
+    let disabledPages = [];
     try {
-      const configVersion = await get<string>('version');
+      const [configVersion, configDisabledPages] = await Promise.all([
+        get<string>('version'),
+        get<any[]>('disabledPages')
+      ]);
       if (configVersion) version = configVersion;
+      if (configDisabledPages) disabledPages = configDisabledPages;
     } catch (e) {
-      console.error("Failed to fetch version from Edge Config", e);
+      console.error("Failed to fetch config from Edge Config", e);
     }
 
     // 1. Check Nexo Engine (Hugging Face)
@@ -74,6 +79,7 @@ export async function GET() {
     return NextResponse.json({
         services: results,
         version: version,
+        disabledPages: disabledPages,
         timestamp: new Date().toISOString()
     });
 

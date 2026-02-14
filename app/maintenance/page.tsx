@@ -14,8 +14,10 @@ function MaintenanceContent() {
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
+        
         if (data.status !== 'maintenance') {
           router.replace('/');
+          return;
         }
         
         if (data.reason) {

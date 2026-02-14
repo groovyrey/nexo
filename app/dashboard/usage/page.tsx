@@ -114,10 +114,21 @@ const UsagePage = () => {
             <Tabs 
                 value={value} 
                 onChange={(e, v) => setValue(v)} 
-                variant="fullWidth"
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
                 sx={{ 
                     borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    '& .MuiTab-root': { color: 'gray', fontWeight: 'bold', py: 3, transition: 'all 0.3s' },
+                    '& .MuiTabs-flexContainer': {
+                      justifyContent: { sm: 'space-around' }
+                    },
+                    '& .MuiTab-root': { 
+                      color: 'gray', 
+                      fontWeight: 'bold', 
+                      py: { xs: 2, md: 3 }, 
+                      minWidth: { xs: 120, sm: 160 },
+                      transition: 'all 0.3s' 
+                    },
                     '& .Mui-selected': { color: 'white !important' },
                     '& .MuiTabs-indicator': { height: 4, borderRadius: '4px 4px 0 0', bgcolor: 'blue.600' }
                 }}

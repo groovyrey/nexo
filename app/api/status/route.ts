@@ -5,12 +5,13 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const [status, reason, version] = await Promise.all([
+    const [status, reason, version, disabledPages] = await Promise.all([
       get<string>('status'),
       get<string>('reason'),
-      get<string>('version')
+      get<string>('version'),
+      get<any[]>('disabledPages')
     ]);
-    return NextResponse.json({ status, reason, version });
+    return NextResponse.json({ status, reason, version, disabledPages });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { useAuthContext } from "@/lib/context";
 import { signInWithGoogle } from "@/lib/auth";
 import Link from 'next/link';

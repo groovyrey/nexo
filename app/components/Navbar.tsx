@@ -92,6 +92,18 @@ const Navbar = () => {
           >
             Docs
           </Button>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={() => router.push('/status')}
+            sx={{
+              px: 2,
+              color: pathname === '/status' ? 'primary.main' : 'white',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' },
+            }}
+          >
+            Status
+          </Button>
           {user ? (
             <>
               <Button
@@ -106,6 +118,19 @@ const Navbar = () => {
                 }}
               >
                 Dashboard
+              </Button>
+              <Button
+                variant="text"
+                color="inherit"
+                onClick={() => router.push('/dashboard/usage')}
+                startIcon={<ShowChartIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  px: 2,
+                  color: pathname === '/dashboard/usage' ? 'primary.main' : 'white',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' },
+                }}
+              >
+                Usage
               </Button>
               <Button
                 variant="text"
