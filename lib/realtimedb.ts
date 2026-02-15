@@ -12,6 +12,7 @@ export interface ConversationMetadata {
   voiceLanguage?: string;
   temperature?: number;
   textSize?: string;
+  onDeviceAI?: boolean;
 }
 
 export const createConversation = async (
@@ -53,6 +54,7 @@ export const createConversation = async (
       voiceLanguage: 'en-US',
       temperature: 0.7,
       textSize: 'medium',
+      onDeviceAI: false,
     });
 
     // Also create an empty 'messages' sub-node to ensure path exists for later messages
@@ -175,6 +177,7 @@ export const getConversationMetadata = (userId: string, conversationId: string, 
         voiceLanguage: data.voiceLanguage || 'en-US',
         temperature: data.temperature !== undefined ? data.temperature : 0.7,
         textSize: data.textSize || 'medium',
+        onDeviceAI: data.onDeviceAI !== undefined ? data.onDeviceAI : false,
       });
     }
   });
@@ -211,6 +214,11 @@ export const updateConversationTemperature = async (userId: string, conversation
 export const updateConversationTextSize = async (userId: string, conversationId: string, textSize: string) => {
   const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
   await update(conversationNodeRef, { textSize });
+};
+
+export const updateConversationOnDeviceAI = async (userId: string, conversationId: string, onDeviceAI: boolean) => {
+  const conversationNodeRef = ref(database, `conversations/${userId}/${conversationId}`);
+  await update(conversationNodeRef, { onDeviceAI });
 };
 
 export interface ConversationStats {

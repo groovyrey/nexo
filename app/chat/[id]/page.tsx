@@ -5,7 +5,8 @@ import Image from 'next/image';
 import ChatMessage from '../components/ChatMessage';
 import { useAuthContext } from '@/lib/context';
 import { useChatStore, ChatMessageType } from '@/lib/store';
-import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus, updateConversationModernize, updateConversationVoiceLanguage, updateConversationTemperature, updateConversationTextSize, updateConversationTitle } from '@/lib/realtimedb';
+import { getConversation, writeMessage, getConversationMetadata, createConversation, updateConversationSpeakStatus, updateConversationModernize, updateConversationVoiceLanguage, updateConversationTemperature, updateConversationTextSize, updateConversationTitle, updateConversationOnDeviceAI } from '@/lib/realtimedb';
+import { onDeviceAI } from '@/lib/onDeviceAI';
 import { database } from "@/lib/firebase";
 import { ref, get, update, set, remove } from "firebase/database";
 import SendIcon from '@mui/icons-material/Send';
@@ -61,6 +62,7 @@ const ChatPage = () => {
     textSize: 'small' | 'medium' | 'large';
     useLocalAI: boolean;
     localAIModel: string;
+    onDeviceAI: boolean;
   }>({ 
     modernize: true, 
     isSpeakEnabled: false, 
@@ -68,7 +70,8 @@ const ChatPage = () => {
     temperature: 0.7,
     textSize: 'medium',
     useLocalAI: false,
-    localAIModel: 'Phi-3-mini-4k-instruct-q4f16_1-MLC'
+    localAIModel: 'Phi-3-mini-4k-instruct-q4f16_1-MLC',
+    onDeviceAI: false
   });
 
   if (!authContext) return null;
@@ -92,6 +95,8 @@ const ChatPage = () => {
         updateConversationTemperature(user.uid, conversationId as string, value as number);
       } else if (key === 'textSize') {
         updateConversationTextSize(user.uid, conversationId as string, value as 'small' | 'medium' | 'large');
+      } else if (key === 'onDeviceAI') {
+        updateConversationOnDeviceAI(user.uid, conversationId as string, value as boolean);
       }
     }
 
@@ -101,7 +106,7 @@ const ChatPage = () => {
         window.speechSynthesis.cancel();
       }
     }
-  }, [user, conversationId, setIsSpeakEnabled]);
+  }, [user, conversationId, setIsSpeakEnabled, setUseLocalAI, setLocalAIModel]);
 
   const handleClearChat = useCallback(async () => {
     if (!user || !conversationId) return;
@@ -253,6 +258,7 @@ const ChatPage = () => {
             voiceLanguage: metadata.voiceLanguage ?? prev.voiceLanguage,
             temperature: metadata.temperature ?? prev.temperature,
             textSize: (metadata.textSize as any) ?? prev.textSize,
+            onDeviceAI: metadata.onDeviceAI ?? prev.onDeviceAI,
           }));
         });
       } catch (error) {
@@ -293,7 +299,7 @@ const ChatPage = () => {
 
     if (useLocalAI) {
       try {
-        setToolStatus("Initializing Local AI...");
+        setToolStatus("Initializing Local AI (WebGPU)...");
         const engine = await getEngine(localAIModel, (report) => {
           setToolStatus(`Loading Model: ${Math.round(report.progress * 100)}%`);
         });
@@ -368,9 +374,6 @@ const ChatPage = () => {
           }; 
           writeMessage(user.uid, conversationId as string, botMessage);
         } else {
-          // No tool needed, but we want streaming if possible. 
-          // For now, let's just use the non-streaming result for simplicity in tool loop, 
-          // but we can add streaming for non-tool calls easily.
           const botMessage: ChatMessageType = { 
             role: 'model', 
             content: message.content || "", 
@@ -389,6 +392,26 @@ const ChatPage = () => {
         setToolStatus(null);
       }
       return;
+    } else if (settings.onDeviceAI) {
+      try {
+        setToolStatus("Nexo is thinking locally (Transformers.js)...");
+        const response = await onDeviceAI.generateText(input.trim());
+        const botMessage: ChatMessageType = { 
+          role: 'model', 
+          content: response, 
+          timestamp: Date.now(), 
+          toolUsed: null,
+          toolOutput: null 
+        }; 
+        writeMessage(user.uid, conversationId as string, botMessage);
+        setLoading(false);
+        setToolStatus(null);
+        return;
+      } catch (error) {
+        console.error('Local AI (Transformers.js) Error:', error);
+        toast.error('Local AI failed. Falling back to server...');
+        // Continue to server fallback
+      }
     }
 
     try {
