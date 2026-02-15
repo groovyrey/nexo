@@ -20,6 +20,8 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getEngine } from '@/lib/clientAI';
+import { getSystemPrompt } from '@/lib/systemPrompt';
 
 const ChatPage = () => {
   const authContext = useAuthContext();
@@ -43,6 +45,10 @@ const ChatPage = () => {
     setToolStatus,
     isSpeakEnabled,
     setIsSpeakEnabled,
+    useLocalAI,
+    setUseLocalAI,
+    localAIModel,
+    setLocalAIModel,
     resetChat
   } = useChatStore();
 
@@ -53,12 +59,16 @@ const ChatPage = () => {
     voiceLanguage: string;
     temperature: number;
     textSize: 'small' | 'medium' | 'large';
+    useLocalAI: boolean;
+    localAIModel: string;
   }>({ 
     modernize: true, 
     isSpeakEnabled: false, 
     voiceLanguage: 'en-US',
     temperature: 0.7,
-    textSize: 'medium'
+    textSize: 'medium',
+    useLocalAI: false,
+    localAIModel: 'Phi-3-mini-4k-instruct-q4f16_1-MLC'
   });
 
   if (!authContext) return null;
@@ -67,7 +77,10 @@ const ChatPage = () => {
   const handleSettingChange = useCallback((key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
     
-    // Save to DB
+    if (key === 'useLocalAI') setUseLocalAI(value);
+    if (key === 'localAIModel') setLocalAIModel(value);
+
+    // Save to DB (optional, maybe keep AI engine local to device)
     if (user && conversationId) {
       if (key === 'isSpeakEnabled') {
         updateConversationSpeakStatus(user.uid, conversationId as string, value as boolean);
@@ -277,6 +290,106 @@ const ChatPage = () => {
     writeMessage(user.uid, conversationId as string, newMessage);
     setInput('');
     setLoading(true);
+
+    if (useLocalAI) {
+      try {
+        setToolStatus("Initializing Local AI...");
+        const engine = await getEngine(localAIModel, (report) => {
+          setToolStatus(`Loading Model: ${Math.round(report.progress * 100)}%`);
+        });
+
+        const personalizedSystemPrompt = await getSystemPrompt(user.displayName || user.email || user.uid, user.uid, conversationId as string);
+        const messagesForAI = [...allMessagesFromDB, newMessage].map(({ role, content }) => ({
+          role: role === 'model' ? 'assistant' : role,
+          content
+        }));
+
+        const fullConversation = [
+          { role: "system", content: personalizedSystemPrompt },
+          ...messagesForAI
+        ];
+
+        setToolStatus("Nexo is thinking (Local)...");
+        
+        const toolDefinitions: any[] = (await import('@/lib/toolDefinitions')).toolDefinitions;
+        
+        // Step 1: Initial call to see if tools are needed
+        const response = await engine.chat.completions.create({
+          messages: fullConversation as any,
+          tools: toolDefinitions,
+          temperature: settings.temperature,
+        });
+
+        const message = response.choices[0].message;
+
+        if (message.tool_calls && message.tool_calls.length > 0) {
+          const toolCall = message.tool_calls[0];
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
+
+          setToolStatus(`Using tool: ${functionName}...`);
+
+          // Execute tool via server-side proxy
+          const toolRes = await fetch('/api/nexo/tools', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              tool: functionName, 
+              args: functionArgs,
+              userId: user.uid,
+              conversationId
+            }),
+          });
+
+          if (!toolRes.ok) throw new Error(`Tool execution failed: ${toolRes.statusText}`);
+          const toolResult = await toolRes.json();
+
+          setToolStatus("Processing results (Local)...");
+
+          // Step 2: Final response with tool result
+          const finalResponse = await engine.chat.completions.create({
+            messages: [
+              ...fullConversation,
+              message,
+              {
+                role: "tool",
+                content: typeof toolResult === 'object' ? JSON.stringify(toolResult) : String(toolResult),
+                tool_call_id: toolCall.id,
+              }
+            ] as any,
+          });
+
+          const botMessage: ChatMessageType = { 
+            role: 'model', 
+            content: finalResponse.choices[0].message.content || "", 
+            timestamp: Date.now(), 
+            toolUsed: functionName,
+            toolOutput: toolResult
+          }; 
+          writeMessage(user.uid, conversationId as string, botMessage);
+        } else {
+          // No tool needed, but we want streaming if possible. 
+          // For now, let's just use the non-streaming result for simplicity in tool loop, 
+          // but we can add streaming for non-tool calls easily.
+          const botMessage: ChatMessageType = { 
+            role: 'model', 
+            content: message.content || "", 
+            timestamp: Date.now(), 
+            toolUsed: null,
+            toolOutput: null
+          }; 
+          writeMessage(user.uid, conversationId as string, botMessage);
+        }
+
+      } catch (error: any) {
+        console.error('Local AI Error:', error);
+        toast.error(`Local AI Error: ${error.message}`);
+      } finally {
+        setLoading(false);
+        setToolStatus(null);
+      }
+      return;
+    }
 
     try {
       const response = await fetch('/api/nexo', {

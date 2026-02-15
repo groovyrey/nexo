@@ -16,6 +16,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
 import EditIcon from '@mui/icons-material/Edit';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import ComputerIcon from '@mui/icons-material/Computer';
+import StorageIcon from '@mui/icons-material/Storage';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { AVAILABLE_MODELS, checkWebGPUSupport } from '@/lib/clientAI';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -26,6 +30,8 @@ interface SettingsModalProps {
     voiceLanguage: string;
     temperature: number;
     textSize: 'small' | 'medium' | 'large';
+    useLocalAI: boolean;
+    localAIModel: string;
   };
   onSettingChange: (key: string, value: any) => void;
   conversationTitle: string;
@@ -101,10 +107,12 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
   const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
   const [newTitle, setNewTitle] = React.useState(conversationTitle);
   const [version, setVersion] = React.useState('2.0.1 (Beta)');
+  const [webGPUStatus, setWebGPUStatus] = React.useState<{ supported: boolean; error?: string }>({ supported: true });
   const langMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (isOpen) {
+      checkWebGPUSupport().then(setWebGPUStatus);
       fetch('/api/status')
         .then(res => res.json())
         .then(data => {
@@ -193,6 +201,102 @@ const SettingsModal: React.FC<SettingsModalProps> = React.memo(({ isOpen, onClos
                   <span className="text-gray-400 text-xs uppercase tracking-wider font-bold">ID</span>
                   <span className="text-gray-500 font-mono text-sm break-all">{conversationId}</span>
                 </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 ml-1">AI Engine</h3>
+              <div className="space-y-4">
+                <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-white font-medium">Engine Location</span>
+                      <span className="text-gray-400 text-sm">Choose where Nexo's brain runs</span>
+                    </div>
+                    <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5">
+                      <button 
+                        onClick={() => onSettingChange('useLocalAI', false)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${!settings.useLocalAI ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                      >
+                        <StorageIcon sx={{ fontSize: 16 }} />
+                        Cloud
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (webGPUStatus.supported) {
+                            onSettingChange('useLocalAI', true);
+                          }
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          settings.useLocalAI 
+                            ? 'bg-green-600 text-white shadow-lg' 
+                            : webGPUStatus.supported 
+                              ? 'text-gray-500 hover:text-gray-300' 
+                              : 'text-gray-700 cursor-not-allowed'
+                        }`}
+                        title={webGPUStatus.error}
+                      >
+                        <ComputerIcon sx={{ fontSize: 16 }} />
+                        Browser
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {!webGPUStatus.supported && (
+                    <div className="flex items-start gap-3 p-3 rounded-2xl bg-orange-500/10 border border-orange-500/20 mt-2">
+                      <WarningAmberIcon sx={{ color: '#f97316', fontSize: 18, mt: 0.5 }} />
+                      <div className="flex flex-col">
+                        <span className="text-orange-400 text-[11px] font-bold uppercase tracking-wider">WebGPU Unsupported</span>
+                        <p className="text-[10px] text-orange-200/70 leading-relaxed">
+                          Your mobile device or browser doesn't support WebGPU. 
+                          Try enabling <b>#enable-unsafe-webgpu</b> in <b>chrome://flags</b>.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-gray-500 leading-relaxed italic">
+                    {settings.useLocalAI 
+                      ? "Browser AI runs locally on your GPU using WebGPU. No credits needed, but requires a capable device and initial model download (~2GB+)." 
+                      : webGPUStatus.supported 
+                        ? "Cloud AI runs on Nexo's servers. Faster for older devices, but consumes credit tokens."
+                        : "Cloud AI is the only option available for your device. WebGPU is required for Browser AI."
+                    }
+                  </p>
+                </div>
+
+                {settings.useLocalAI && (
+                  <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-white font-medium">Local Model</span>
+                      <span className="text-gray-400 text-sm mb-2">Select the model to run in your browser</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {AVAILABLE_MODELS.map((model) => (
+                        <button
+                          key={model.model_id}
+                          onClick={() => onSettingChange('localAIModel', model.model_id)}
+                          className={`flex flex-col items-start p-4 rounded-2xl border transition-all text-left ${
+                            settings.localAIModel === model.model_id
+                              ? 'bg-green-600/10 border-green-500/50'
+                              : 'bg-black/20 border-white/5 hover:border-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className={`text-sm font-bold ${settings.localAIModel === model.model_id ? 'text-green-400' : 'text-white'}`}>
+                              {model.model_id.split('-')[0]} {model.model_id.includes('mini') ? 'Mini' : ''}
+                            </span>
+                            {model.low_resource_required && (
+                              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-tighter font-black">Lightweight</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-500 mt-1 font-mono">{model.model_id}</span>
+                          <span className="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-bold">~{model.vram_required_MB}MB VRAM required</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 

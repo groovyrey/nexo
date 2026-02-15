@@ -17,6 +17,8 @@ interface ChatState {
   loading: boolean;
   toolStatus: string | null;
   isSpeakEnabled: boolean;
+  useLocalAI: boolean;
+  localAIModel: string;
   
   // Actions
   setMessagesToDisplayCount: (count: number | ((prev: number) => number)) => void;
@@ -27,6 +29,8 @@ interface ChatState {
   setLoading: (loading: boolean) => void;
   setToolStatus: (status: string | null) => void;
   setIsSpeakEnabled: (enabled: boolean) => void;
+  setUseLocalAI: (useLocal: boolean) => void;
+  setLocalAIModel: (model: string) => void;
   resetChat: () => void;
 }
 
@@ -39,6 +43,8 @@ export const useChatStore = create<ChatState>((set) => ({
   loading: false,
   toolStatus: null,
   isSpeakEnabled: false,
+  useLocalAI: false,
+  localAIModel: "Phi-3-mini-4k-instruct-q4f16_1-MLC",
 
   setMessagesToDisplayCount: (count) => 
     set((state) => ({ 
@@ -54,7 +60,9 @@ export const useChatStore = create<ChatState>((set) => ({
   setLoading: (loading) => set({ loading }),
   setToolStatus: (status) => set({ toolStatus: status }),
   setIsSpeakEnabled: (enabled) => set({ isSpeakEnabled: enabled }),
-  resetChat: () => set({
+  setUseLocalAI: (useLocal) => set({ useLocalAI: useLocal }),
+  setLocalAIModel: (model) => set({ localAIModel: model }),
+  resetChat: () => set((state) => ({
     messagesToDisplayCount: 20,
     allMessagesFromDB: [],
     messages: [],
@@ -62,6 +70,8 @@ export const useChatStore = create<ChatState>((set) => ({
     input: '',
     loading: false,
     toolStatus: null,
-    isSpeakEnabled: false,
-  }),
+    isSpeakEnabled: state.isSpeakEnabled,
+    useLocalAI: state.useLocalAI,
+    localAIModel: state.localAIModel,
+  })),
 }));

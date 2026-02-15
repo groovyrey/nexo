@@ -12,6 +12,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@huggingface/inference": "^4.13.11",
+    "@mlc-ai/web-llm": "^0.2.80",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@neondatabase/serverless": "^1.0.2",
